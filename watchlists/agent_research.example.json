@@ -1,0 +1,12 @@
+{
+  "id": "agent_research",
+  "description": "Example watchlist for agent research discovery.",
+  "queries": [
+    "agentic RAG",
+    "AI agent memory",
+    "agent skills",
+    "multi-agent coordination"
+  ],
+  "sources": ["arxiv", "semantic_scholar", "web"],
+  "limit": 25
+}

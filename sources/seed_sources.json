@@ -1,0 +1,44 @@
+{
+  "sources": [],
+  "patterns": [
+    {
+      "id": "evidence-first-memory",
+      "name": "Evidence-First Memory",
+      "category": "memory",
+      "description": "Store reusable knowledge with source provenance and review state instead of relying on unsupported recollection.",
+      "agent_rule": "When durable memory affects future behavior, preserve source evidence and confidence.",
+      "runtime_rule": "Require source/capture identifiers for graph or skill updates.",
+      "maturity": "emerging"
+    },
+    {
+      "id": "progressive-skill-disclosure",
+      "name": "Progressive Skill Disclosure",
+      "category": "skills",
+      "description": "Expose a concise skill trigger first, then load detailed references, scripts, or assets only when needed.",
+      "agent_rule": "Keep skill entrypoints small and push bulky context into references or tools.",
+      "runtime_rule": "Skill installers should preserve metadata, references, and verification scripts separately.",
+      "maturity": "emerging"
+    }
+  ],
+  "failure_modes": [
+    {
+      "id": "unsupported-memory-write",
+      "name": "Unsupported Memory Write",
+      "description": "A system stores a durable lesson without enough source evidence or user/reviewer approval.",
+      "detection": "Memory notes, graph edges, or generated skills lack source IDs, evidence IDs, or review metadata.",
+      "mitigation": "Use capture, proposal, review, and apply steps before durable graph or skill changes.",
+      "severity": "medium"
+    }
+  ],
+  "benchmarks": [],
+  "agent_practices": [
+    {
+      "id": "capture-before-graph",
+      "name": "Capture Before Graph",
+      "trigger": "A web page, paper, repo, or local document should become durable Praxis knowledge.",
+      "practice": "Capture the source first, then create a graph proposal, review it, and apply only supported relationships.",
+      "anti_pattern": "Directly adding graph edges or skills from a raw web page without preserved evidence.",
+      "evidence_basis": "Praxis seed practice."
+    }
+  ]
+}

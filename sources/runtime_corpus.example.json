@@ -1,0 +1,14 @@
+{
+  "allowed_suffixes": [".md", ".txt", ".py", ".json", ".yaml", ".yml", ".toml"],
+  "global_exclude_dirs": [".git", "__pycache__", "node_modules", ".venv", "dist", "build"],
+  "global_exclude_globs": ["*.pyc", "*.log", "*.sqlite", "*.db", ".env", "*.pem", "*.key"],
+  "max_file_bytes": 250000,
+  "entries": [
+    {
+      "runtime": "example-runtime",
+      "root": "examples/runtime",
+      "include": ["**/*.md", "**/*.py"],
+      "exclude": ["**/secrets/**"]
+    }
+  ]
+}

@@ -1,0 +1,99 @@
+{
+  "evidence": [
+    {
+      "id": "ev:praxis-seed",
+      "evidence_type": "seed",
+      "title": "Praxis seed graph",
+      "source_path": "kg/seed_graph.json",
+      "note": "Product-safe starter graph for a clean Praxis checkout.",
+      "confidence": "medium"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "system:praxis",
+      "type": "system",
+      "name": "Praxis",
+      "summary": "Agent-agnostic knowledge-to-skill framework combining source capture, retrieval, graph memory, skill packaging, and evaluation.",
+      "confidence": "medium",
+      "aliases": ["Praxis framework"],
+      "tags": ["seed", "framework"]
+    },
+    {
+      "id": "concept:source-capture",
+      "type": "concept",
+      "name": "Source Capture",
+      "summary": "Durable capture of source content, metadata, provenance, and summaries before memory or graph updates are applied.",
+      "confidence": "medium",
+      "tags": ["seed", "ingestion"]
+    },
+    {
+      "id": "concept:hybrid-retrieval",
+      "type": "concept",
+      "name": "Hybrid Retrieval",
+      "summary": "Retrieval that combines semantic similarity, keyword matches, and graph hints.",
+      "confidence": "medium",
+      "tags": ["seed", "retrieval"]
+    },
+    {
+      "id": "concept:skillgraph",
+      "type": "concept",
+      "name": "SkillGraph",
+      "summary": "Graph of sources, concepts, skills, practices, tools, benchmarks, claims, and evidence-backed relationships.",
+      "confidence": "medium",
+      "aliases": ["knowledge graph"],
+      "tags": ["seed", "graph"]
+    },
+    {
+      "id": "concept:agent-skill",
+      "type": "concept",
+      "name": "Agent Skill",
+      "summary": "Portable procedural capability package that can include instructions, references, scripts, tests, and assets.",
+      "confidence": "medium",
+      "aliases": ["SKILL.md", "skill package"],
+      "tags": ["seed", "skills"]
+    },
+    {
+      "id": "concept:knowledge-to-skill-loop",
+      "type": "concept",
+      "name": "Knowledge-to-Skill Loop",
+      "summary": "Lifecycle where trusted sources become indexed memory, graph relationships, practical skills, and evaluated agent behavior.",
+      "confidence": "medium",
+      "tags": ["seed", "loop"]
+    }
+  ],
+  "edges": [
+    {
+      "source_id": "system:praxis",
+      "relation": "implements",
+      "target_id": "concept:knowledge-to-skill-loop",
+      "evidence_id": "ev:praxis-seed",
+      "summary": "Praxis is organized around turning captured knowledge into reusable agent capability.",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "concept:source-capture",
+      "relation": "feeds",
+      "target_id": "concept:hybrid-retrieval",
+      "evidence_id": "ev:praxis-seed",
+      "summary": "Captured source text can be chunked and indexed for retrieval.",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "concept:source-capture",
+      "relation": "feeds",
+      "target_id": "concept:skillgraph",
+      "evidence_id": "ev:praxis-seed",
+      "summary": "Reviewed captures can provide evidence for graph nodes and edges.",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "concept:skillgraph",
+      "relation": "supports",
+      "target_id": "concept:agent-skill",
+      "evidence_id": "ev:praxis-seed",
+      "summary": "Graph relationships help decide which procedural skill updates are justified.",
+      "confidence": "medium"
+    }
+  ]
+}
