@@ -22,15 +22,28 @@ The goal is to help AI agents work from knowledge that is searchable, source-tra
 
 ## Who This Is For
 
-Praxis is for people building or operating AI agents who need durable, inspectable knowledge instead of one-off prompts.
+Praxis is for people building AI agents that need to remember, retrieve, and reuse knowledge in a way that can be checked later.
 
-It is especially useful if you:
+It is useful when prompt notes, ad hoc documents, or scattered research are no longer enough. Praxis helps when you need agents to work from a maintained knowledge base, not whatever context happens to fit in one chat window.
 
-- maintain a private research or documentation corpus;
-- want agents to reuse lessons across projects;
-- need source provenance before trusting retrieved knowledge;
-- want to convert documentation into skills, playbooks, or agent workflows;
-- are experimenting with memory, RAG, SkillGraph, or agent-governance patterns.
+Praxis is a good fit if you:
+
+- maintain research, documentation, project notes, or operating procedures that agents should be able to search;
+- want agents to reuse accepted lessons across projects instead of rediscovering the same information;
+- need source evidence attached to retrieved claims before treating them as reliable;
+- want a review step before captured knowledge becomes durable memory;
+- want to turn trusted documentation into `SKILL.md`-style instructions, playbooks, references, or workflows;
+- are building with RAG, agent memory, SkillGraphs, evals, or agent-governance patterns.
+
+## Praxis vs RAG vs Skills
+
+| System | Primary Job | What It Usually Misses | Praxis Adds |
+| --- | --- | --- | --- |
+| Plain RAG | Retrieve relevant text | Source governance, relationships, reusable behavior | Capture review, evidence records, graph context, skill export |
+| Vector DB | Store and search embeddings | Workflow, provenance, semantic relationships | CLI workflows, source registry, SkillGraph, evals |
+| Agent skills | Package reusable behavior | Evidence base and update loop | Source-to-skill pipeline and indexed corpus |
+| Knowledge graph | Connect concepts | Agent-facing retrieval and practical workflows | Hybrid search, skills, adapters, local operations |
+| Praxis | Turn knowledge into usable agent capability | Not a hosted platform yet | Local governed knowledge-to-skill loop |
 
 ## Quickstart
 
@@ -90,16 +103,6 @@ flowchart LR
     E --> F["Chunk / Embed"]
     F --> G["Search / Export Skills"]
 ```
-
-## Praxis vs RAG vs Skills
-
-| System | Primary Job | What It Usually Misses | Praxis Adds |
-| --- | --- | --- | --- |
-| Plain RAG | Retrieve relevant text | Source governance, relationships, reusable behavior | Capture review, evidence records, graph context, skill export |
-| Vector DB | Store and search embeddings | Workflow, provenance, semantic relationships | CLI workflows, source registry, SkillGraph, evals |
-| Agent skills | Package reusable behavior | Evidence base and update loop | Source-to-skill pipeline and indexed corpus |
-| Knowledge graph | Connect concepts | Agent-facing retrieval and practical workflows | Hybrid search, skills, adapters, local operations |
-| Praxis | Turn knowledge into usable agent capability | Not a hosted platform yet | Local governed knowledge-to-skill loop |
 
 ## What Praxis Does
 
