@@ -12,12 +12,13 @@ The goal is to help AI agents work from knowledge that is searchable, source-tra
 
 ## Highlights
 
-- **Source-to-skill loop**: capture sources, preserve evidence, index knowledge, connect concepts, and export reusable workflows.
-- **More than plain RAG**: combines semantic retrieval, full-text search, and a SkillGraph instead of stopping at vector search.
-- **Review-gated memory**: internet and document captures become durable knowledge only after proposal/review/apply steps.
-- **Agent-agnostic by design**: built to work with Codex, Claude Code, LangGraph, LlamaIndex, Haystack, Mem0, and future adapters.
-- **Private-corpus friendly**: the public scaffold ships without private data, absolute local paths, user-specific connectors, or runtime lock-in.
-- **Local-first**: works from a checkout with SQLite, local scripts, and offline local-hash embeddings.
+- **RAG + skills**: creates searchable knowledge and reusable agent instructions from the same source material.
+- **Source-traceable**: keeps raw text, summaries, metadata, and review notes attached to accepted knowledge.
+- **Hybrid search**: combines semantic search, keyword search, and SkillGraph relationships.
+- **Reviewed updates**: separates capture from review before knowledge is accepted for reuse.
+- **Agent-runtime ready**: exports `SKILL.md`-style instructions, references, and workflows.
+- **Private-corpus friendly**: ships without private data, local paths, personal connectors, or runtime lock-in.
+- **Local-first**: runs with SQLite, scripts, and offline embeddings from a normal checkout.
 
 ## Who This Is For
 
