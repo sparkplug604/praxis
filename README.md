@@ -1,10 +1,14 @@
 # Praxis
 
-Praxis is an agent-agnostic **knowledge-to-skill framework**.
+Praxis connects retrieval-based knowledge systems with skill-based agent behavior.
 
-It helps teams turn trusted sources into searchable evidence, graph relationships, reusable agent workflows, and practical skills. In plain language: Praxis is the loop around RAG that makes knowledge usable during real agent work.
+It turns documents, research, and project notes into two things agents can use: searchable knowledge and reusable skills.
 
-> Knowledge is only valuable to an agent when it can be retrieved, trusted, and turned into reusable behavior.
+Praxis captures source material from web pages, papers, documentation, local files, and project notes. It preserves the raw text, creates summaries, splits content into searchable chunks, maps relationships in a SkillGraph, and runs retrieval checks to make sure important knowledge can actually be found.
+
+Praxis also supports a review step before knowledge becomes durable. Retrieved text is not treated as automatically true. Source evidence stays attached, proposed updates can be reviewed, and accepted knowledge can be exported into `SKILL.md`-style instructions, references, and workflows for agent runtimes.
+
+The goal is to help AI agents work from knowledge that is searchable, source-traceable, reviewable, and reusable across tasks.
 
 ## Highlights
 
