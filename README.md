@@ -35,15 +35,20 @@ Praxis is a good fit if you:
 - want to turn trusted documentation into `SKILL.md`-style instructions, playbooks, references, or workflows;
 - are building with RAG, agent memory, SkillGraphs, evals, or agent-governance patterns.
 
-## Praxis vs RAG vs Skills
+## How Praxis Relates To RAG And Skills
 
-| System | Primary Job | What It Usually Misses | Praxis Adds |
+Praxis does not replace RAG, vector databases, knowledge graphs, memory systems, or agent skills. It connects them into one workflow.
+
+RAG helps an agent find information. Skills help an agent repeat useful behavior. Praxis manages the path between source material, reviewed knowledge, searchable retrieval, graph relationships, and reusable agent instructions.
+
+| System | What It Gives An Agent | What It Does Not Usually Handle | Where Praxis Fits |
 | --- | --- | --- | --- |
-| Plain RAG | Retrieve relevant text | Source governance, relationships, reusable behavior | Capture review, evidence records, graph context, skill export |
-| Vector DB | Store and search embeddings | Workflow, provenance, semantic relationships | CLI workflows, source registry, SkillGraph, evals |
-| Agent skills | Package reusable behavior | Evidence base and update loop | Source-to-skill pipeline and indexed corpus |
-| Knowledge graph | Connect concepts | Agent-facing retrieval and practical workflows | Hybrid search, skills, adapters, local operations |
-| Praxis | Turn knowledge into usable agent capability | Not a hosted platform yet | Local governed knowledge-to-skill loop |
+| RAG | Relevant text from documents at task time | Whether the source is trusted, reviewed, current, or reusable outside the current task | Praxis captures sources, preserves evidence, and makes retrieved knowledge part of a maintained workflow |
+| Vector database | Semantic search over embedded chunks | Source review, provenance, graph relationships, skill export, or agent workflow design | Praxis can use vector search as one layer, alongside full-text search, SkillGraph links, and review records |
+| Knowledge graph | Relationships between sources, concepts, claims, practices, risks, and tools | Turning those relationships into agent instructions or task-time retrieval workflows | Praxis uses a SkillGraph to make relationships searchable and useful during agent work |
+| Agent memory | Stored facts, lessons, preferences, or prior work across sessions | Evidence quality, staleness, review status, and source traceability | Praxis treats durable memory as reviewed, source-linked knowledge rather than loose remembered text |
+| Agent skills | Reusable instructions, workflows, references, or tool patterns | Where the knowledge came from, how it was reviewed, and how it should be updated | Praxis exports reviewed knowledge into `SKILL.md`-style artifacts with references and supporting context |
+| Praxis | A pipeline for turning source material into searchable knowledge and reusable agent behavior | It is not the agent runtime itself | Praxis manages capture, evidence, review, retrieval, graph relationships, evals, and skill export |
 
 ## What Praxis Does
 
