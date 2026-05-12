@@ -45,6 +45,68 @@ Praxis is a good fit if you:
 | Knowledge graph | Connect concepts | Agent-facing retrieval and practical workflows | Hybrid search, skills, adapters, local operations |
 | Praxis | Turn knowledge into usable agent capability | Not a hosted platform yet | Local governed knowledge-to-skill loop |
 
+## What Praxis Does
+
+Praxis is not just RAG. It is the loop around RAG:
+
+```mermaid
+flowchart LR
+    A["Sources"] --> B["Archive"]
+    B --> C["Semantic Index"]
+    B --> D["SkillGraph"]
+    C --> E["Hybrid Retrieval"]
+    D --> E
+    E --> F["Agent Work"]
+    F --> G["Lessons / Evals"]
+    G --> H["Skills"]
+    H --> F
+```
+
+Core capabilities:
+
+- capture web, local file, and local directory sources;
+- preserve raw and summarized evidence;
+- propose, review, and apply SkillGraph updates;
+- chunk source material into a semantic index;
+- embed chunks with an offline local-hash provider or a real embedding provider;
+- combine vector, keyword, and graph hints through hybrid search;
+- export graph and library material into skill/reference artifacts;
+- run health checks and retrieval evals.
+
+## Core Layers
+
+- `research/`: source captures, inbox scans, reviewed graph proposals, and applied updates.
+- `vectors/`: semantic documents, chunks, and embeddings.
+- `kg/`: SkillGraph schema, seed graph, and graph database.
+- `db/`: relational library records for sources, practices, claims, patterns, and benchmarks.
+- `scripts/`: local CLI tools for capture, indexing, graph updates, search, and health checks.
+- `watchlists/`: recurring research/search targets.
+- `skills/`: Praxis-owned skill artifacts and generated references.
+- `adapters/`: integration notes and future adapter code for agent runtimes and frameworks.
+- `docs/`: architecture notes, product framing, and implementation plans.
+
+## Safety Model
+
+Praxis treats memory as evidence, not truth. Captured material is stored with source context so retrieved claims can be checked instead of accepted blindly.
+
+- The default data model is designed for documents, notes, research, summaries, graph edges, and skill references rather than secrets, credentials, or raw sensitive transcripts.
+- Internet and document captures are separated from durable memory updates, so new material can be reviewed before it changes the reusable knowledge base.
+- SkillGraph changes move through proposal and review records before they are applied.
+- Graph relationships are represented as evidence-backed links, not absolute facts.
+- Skill artifacts are meant to stay small, inspectable, versioned, and testable.
+- Local/offline embeddings are supported as the default path, with real embedding providers available when credentials and billing are configured.
+
+## Adapter Strategy
+
+Praxis is designed to stay framework and LLM agnostic. The core system owns source captures, evidence records, chunks, graph relationships, review state, and skill artifacts. Adapters translate those artifacts into the format expected by each agent runtime or orchestration framework.
+
+The adapter layer is intended to support:
+
+- agent runtimes such as Codex, Claude Code, and Cursor/OpenCode-compatible Agent Skills;
+- agent frameworks such as LangGraph, LlamaIndex, and Haystack;
+- memory systems such as Mem0;
+- an MCP bridge that exposes Praxis search, graph, capture, and skill operations to external tools.
+
 ## Quickstart
 
 Clone the repository and install it in editable mode:
@@ -103,68 +165,6 @@ flowchart LR
     E --> F["Chunk / Embed"]
     F --> G["Search / Export Skills"]
 ```
-
-## What Praxis Does
-
-Praxis is not just RAG. It is the loop around RAG:
-
-```mermaid
-flowchart LR
-    A["Sources"] --> B["Archive"]
-    B --> C["Semantic Index"]
-    B --> D["SkillGraph"]
-    C --> E["Hybrid Retrieval"]
-    D --> E
-    E --> F["Agent Work"]
-    F --> G["Lessons / Evals"]
-    G --> H["Skills"]
-    H --> F
-```
-
-Core capabilities:
-
-- capture web, local file, and local directory sources;
-- preserve raw and summarized evidence;
-- propose, review, and apply SkillGraph updates;
-- chunk source material into a semantic index;
-- embed chunks with an offline local-hash provider or a real embedding provider;
-- combine vector, keyword, and graph hints through hybrid search;
-- export graph and library material into skill/reference artifacts;
-- run health checks and retrieval evals.
-
-## Core Layers
-
-- `research/`: source captures, inbox scans, reviewed graph proposals, and applied updates.
-- `vectors/`: semantic documents, chunks, and embeddings.
-- `kg/`: SkillGraph schema, seed graph, and graph database.
-- `db/`: relational library records for sources, practices, claims, patterns, and benchmarks.
-- `scripts/`: local CLI tools for capture, indexing, graph updates, search, and health checks.
-- `watchlists/`: recurring research/search targets.
-- `skills/`: Praxis-owned skill artifacts and generated references.
-- `adapters/`: integration notes and future adapter code for agent runtimes and frameworks.
-- `docs/`: architecture notes, product framing, and implementation plans.
-
-## Safety Model
-
-Praxis treats memory as evidence, not truth.
-
-- Do not store secrets, API keys, private credentials, or raw sensitive transcripts.
-- Capture internet sources before applying durable memory changes.
-- Use graph proposals and review notes before mutating the SkillGraph.
-- Treat graph edges as evidence-backed hypotheses, not absolute truth.
-- Keep skills small, inspectable, versioned, and testable.
-- Prefer local/offline embeddings when credentials or billing are unavailable.
-
-## Adapter Strategy
-
-Praxis should stay framework and LLM agnostic. The core owns durable artifacts and evidence. Adapters translate those artifacts into the format expected by each runtime.
-
-Initial adapter targets:
-
-- Agent runtimes: Codex, Claude Code, Cursor/OpenCode-compatible Agent Skills.
-- Agent frameworks: LangGraph, LlamaIndex, Haystack.
-- Memory systems: Mem0.
-- Future bridge: MCP server exposing Praxis search, graph, capture, and skill operations.
 
 ## Command Reference
 
