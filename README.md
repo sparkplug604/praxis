@@ -1,14 +1,16 @@
 # Praxis
 
-Praxis connects retrieval-based knowledge systems with skill-based agent behavior.
+Praxis connects RAG-style retrieval with skill-based agent behavior.
 
-It turns documents, research, and project notes into two things agents can use: searchable knowledge and reusable skills.
+It turns documents, research, web pages, papers, local files, and project notes into living agent knowledge: searchable when an agent needs context, reusable when that knowledge should become a skill.
 
-Praxis captures source material from web pages, papers, documentation, local files, and project notes. It preserves the raw text, creates summaries, splits content into searchable chunks, maps relationships in a SkillGraph, and runs retrieval checks to make sure important knowledge can actually be found.
+Praxis captures source material, preserves the raw evidence, creates summaries, splits content into searchable chunks, and maps relationships in a SkillGraph. Search is not just vector lookup: it combines semantic retrieval, keyword matching, and graph context, then explains why each result was returned.
 
-Praxis writes captured knowledge into the SkillGraph automatically as provisional, source-linked memory. Retrieved text is not treated as automatically true: source evidence, confidence metadata, change logs, and rollback commands stay attached, and selected knowledge can later be promoted into `SKILL.md`-style instructions, references, and workflows for agent runtimes.
+Captured knowledge flows into the SkillGraph automatically as provisional, source-linked memory. Nothing becomes blind "AI memory" without a trail. Every update keeps source evidence, confidence metadata, audit logs, and before/after change records attached.
 
-The goal is to help AI agents work from knowledge that is searchable, source-traceable, inspectable, reversible, and reusable across tasks.
+From there, knowledge can be promoted, deprecated, rolled back, searched, evaluated, or exported into `SKILL.md`-style instructions, references, and workflows for agent runtimes.
+
+Praxis gives agents a way to build on what they learn without dragging a giant context window behind them. It makes agent knowledge searchable, traceable, reversible, and reusable, so every useful source can become practical agent capability.
 
 ## Highlights
 
