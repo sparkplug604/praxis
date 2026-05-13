@@ -90,28 +90,13 @@ Core capabilities:
 - `adapters/`: integration notes and future adapter code for agent runtimes and frameworks.
 - `docs/`: architecture notes, product framing, and implementation plans.
 
-## Safety Model
+## Trust, Traceability, And Rollback
 
-Praxis treats memory as evidence, not truth. Captured material is stored with source context so retrieved claims can be checked instead of accepted blindly.
+Praxis treats memory as evidence, not truth.
 
-- The default data model is designed for documents, notes, research, summaries, graph edges, and skill references rather than secrets, credentials, or raw sensitive transcripts.
-- Internet and document captures can create provisional SkillGraph updates automatically.
-- Every graph mutation is recorded as a change set with before/after items so it can be inspected or rolled back.
-- Graph relationships are represented as evidence-backed, confidence-tagged links, not absolute facts.
-- Reverted and deprecated graph objects are hidden from normal search/export by default but remain inspectable.
-- Skill artifacts are meant to stay small, inspectable, versioned, and testable.
-- Local/offline embeddings are supported as the default path, with real embedding providers available when credentials and billing are configured.
+Captured material is stored with source context so claims can be checked later. SkillGraph updates are provisional by default. Every graph mutation is logged as a change set with before/after records, and reverted or deprecated graph objects are hidden from normal search/export unless you explicitly inspect them.
 
-## Adapter Strategy
-
-Praxis is designed to stay framework and LLM agnostic. The core system owns source captures, evidence records, chunks, graph relationships, audit state, and skill artifacts. Adapters translate those artifacts into the format expected by each agent runtime or orchestration framework.
-
-The adapter layer is intended to support:
-
-- agent runtimes such as Codex, Claude Code, and Cursor/OpenCode-compatible Agent Skills;
-- agent frameworks such as LangGraph, LlamaIndex, and Haystack;
-- memory systems such as Mem0;
-- an MCP bridge that exposes Praxis search, graph, capture, and skill operations to external tools.
+Praxis is built to let agents move quickly without turning memory into an untraceable junk drawer.
 
 ## Quickstart
 
@@ -146,6 +131,8 @@ PYTHONPATH=src python3 -m praxis doctor --require-index
 PYTHONPATH=src python3 -m praxis search "knowledge to skill loop"
 ```
 
+For the full CLI reference, see [docs/cli.md](docs/cli.md). For adapter and architecture notes, see [docs/architecture.md](docs/architecture.md).
+
 ## Example Workflow
 
 Praxis uses an optimistic source-ingestion path. The goal is to move quickly without losing provenance, logs, or rollback.
@@ -172,76 +159,8 @@ flowchart LR
     E --> G["Promote / Export Skills"]
 ```
 
-## Command Reference
-
-Script interface:
-
-```bash
-python3 scripts/hybrid_search.py "test-backed refactoring"
-python3 scripts/search_skill_graph.py search "refactoring"
-python3 scripts/ingest_source.py "https://example.com/source"
-python3 scripts/graph_changes.py list
-python3 scripts/rollback_graph_change.py "chg:..."
-python3 scripts/research_source.py "https://example.com/source"
-python3 scripts/propose_graph_update.py "cap:source-id:hash"
-python3 scripts/apply_graph_update.py "research/proposals/proposal.json" --dry-run
-python3 scripts/chunk_sources.py --changed-only
-python3 scripts/index_vectors.py --provider local-hash
-python3 scripts/eval_retrieval.py
-python3 scripts/skill_doctor.py
-```
-
-Package CLI:
-
-```bash
-praxis bootstrap
-praxis doctor --require-index
-praxis search "knowledge to skill loop"
-praxis graph search "SkillGraph"
-praxis ingest "https://example.com/source"
-praxis changes list
-praxis rollback "chg:..."
-praxis capture "https://example.com/source"
-praxis chunk --changed-only
-praxis embed --provider local-hash
-praxis eval
-```
-
-Praxis is currently checkout/workspace-oriented. The CLI expects a Praxis root containing `scripts/`, `db/`, `kg/`, `research/`, and `vectors/`.
-
-If you run the CLI outside the checkout, pass `--root /path/to/Praxis` or set `PRAXIS_ROOT`.
-
-## What Praxis Does Not Do Yet
+## What Praxis Does Not Do (Yet)
 
 Praxis is early-stage and intentionally local-first.
 
-- It is not a hosted service.
-- It is not a replacement for production vector databases.
-- It is not a full autonomous agent runtime.
-- It does not automatically promote provisional graph updates into high-trust skills or policies.
-- It does not ship with private corpora or user-specific connectors.
-- It does not yet provide polished adapters for every target framework.
-
-## Roadmap
-
-- Add richer adapter examples for LangGraph, LlamaIndex, Haystack, Mem0, Codex, and Claude Code.
-- Add an MCP server for search, graph, capture, and skill operations.
-- Add optional LanceDB or other vector-store backends.
-- Add CI, linting, and automated retrieval checks.
-- Improve exports from SkillGraph into agent skill packages.
-- Add screenshots or terminal recordings for first-run workflows.
-
-## Contributing
-
-This project is intentionally open-source friendly and lightweight.
-
-Useful contributions include:
-
-- clearer docs and examples;
-- adapter prototypes;
-- better retrieval evals;
-- safer ingestion policies;
-- issue reports from trying the quickstart;
-- examples of Praxis-generated skills or workflows.
-
-If you are unsure where to start, open an issue describing what you tried, what confused you, and what you expected to happen.
+It is not a hosted service, not a production vector database, and not a full autonomous agent runtime. It does not automatically promote provisional graph updates into high-trust skills or policies, and it does not ship with private corpora or user-specific connectors.

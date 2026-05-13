@@ -73,6 +73,15 @@ sequenceDiagram
 
 ## Near-Term Adapter Order
 
+Praxis is designed to stay framework and LLM agnostic. The core system owns source captures, evidence records, chunks, graph relationships, audit state, and skill artifacts. Adapters translate those artifacts into the format expected by each agent runtime or orchestration framework.
+
+The adapter layer is intended to support:
+
+- agent runtimes such as Codex, Claude Code, and Cursor/OpenCode-compatible Agent Skills;
+- agent frameworks such as LangGraph, LlamaIndex, and Haystack;
+- memory systems such as Mem0;
+- an MCP bridge that exposes Praxis search, graph, capture, and skill operations to external tools.
+
 1. Codex adapter: provide one concrete agent-runtime export path.
 2. Agent Skills exporter: write runtime-neutral `SKILL.md` packages.
 3. Claude Code adapter: install/export compatible skills.
