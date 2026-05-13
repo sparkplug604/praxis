@@ -41,6 +41,12 @@ def connect(db_path: Path) -> sqlite3.Connection:
     return connection
 
 
+def ensure_column(connection: sqlite3.Connection, table: str, column: str, definition: str) -> None:
+    columns = {row["name"] for row in connection.execute(f"PRAGMA table_info({table})")}
+    if column not in columns:
+        connection.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")
+
+
 def ensure_tag(connection: sqlite3.Connection, name: str) -> int:
     connection.execute("INSERT OR IGNORE INTO tags(name) VALUES (?)", (name,))
     row = connection.execute("SELECT id FROM tags WHERE name = ?", (name,)).fetchone()
@@ -99,11 +105,12 @@ def upsert_evidence(connection: sqlite3.Connection, evidence: dict[str, Any]) ->
         "locator": evidence.get("locator", ""),
         "note": evidence.get("note", ""),
         "confidence": evidence.get("confidence", "medium"),
+        "status": evidence.get("status", "active"),
     }
     connection.execute(
         """
-        INSERT INTO evidence(id, evidence_type, title, source_path, url, locator, note, confidence)
-        VALUES (:id, :evidence_type, :title, :source_path, :url, :locator, :note, :confidence)
+        INSERT INTO evidence(id, evidence_type, title, source_path, url, locator, note, confidence, status)
+        VALUES (:id, :evidence_type, :title, :source_path, :url, :locator, :note, :confidence, :status)
         ON CONFLICT(id) DO UPDATE SET
           evidence_type=excluded.evidence_type,
           title=excluded.title,
@@ -112,6 +119,7 @@ def upsert_evidence(connection: sqlite3.Connection, evidence: dict[str, Any]) ->
           locator=excluded.locator,
           note=excluded.note,
           confidence=excluded.confidence,
+          status=excluded.status,
           updated_at=CURRENT_TIMESTAMP
         """,
         payload,
@@ -300,6 +308,8 @@ def print_counts(connection: sqlite3.Connection) -> None:
         "source_registry",
         "source_captures",
         "graph_update_proposals",
+        "graph_change_sets",
+        "graph_change_items",
         "refresh_queue",
         "watchlist_runs",
         "research_hits",
@@ -324,6 +334,7 @@ def main() -> int:
     seed = json.loads(seed_path.read_text(encoding="utf-8"))
     with connect(db_path) as connection:
         connection.executescript(schema_path.read_text(encoding="utf-8"))
+        ensure_column(connection, "evidence", "status", "TEXT NOT NULL DEFAULT 'active'")
         for evidence in seed.get("evidence", []):
             upsert_evidence(connection, evidence)
         for node in seed.get("nodes", []):

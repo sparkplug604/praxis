@@ -6,10 +6,10 @@ The governing shape is:
 
 ```text
 source capture -> chunk -> embed -> vector/keyword retrieval
-source capture -> proposal -> review -> graph update
+source capture -> provisional graph update -> audit log -> rollback/promote
 ```
 
-Embeddings are allowed to update automatically because they are retrieval indexes, not truth claims. Durable SkillGraph claims still require proposal, review, and apply.
+Embeddings are allowed to update automatically because they are retrieval indexes, not truth claims. SkillGraph updates can also be applied automatically, but they are provisional by default and recorded in audited change sets so they can be inspected or rolled back.
 
 ## Commands
 

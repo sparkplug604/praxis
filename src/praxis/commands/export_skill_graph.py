@@ -8,6 +8,7 @@ import re
 import sqlite3
 from pathlib import Path
 
+from graph_audit import LIVE_STATUSES, ensure_audit_schema
 from praxis.paths import default_root
 
 
@@ -33,7 +34,19 @@ def mermaid_label(text: str) -> str:
     return text.replace('"', "'")
 
 
-def export_markdown(connection: sqlite3.Connection, out_path: Path, limit_edges: int) -> None:
+def live_edge_clause(include_inactive: bool) -> str:
+    if include_inactive:
+        return ""
+    statuses = ", ".join(repr(status) for status in LIVE_STATUSES)
+    return (
+        f"WHERE edge_status IN ({statuses}) "
+        f"AND source_status IN ({statuses}) "
+        f"AND target_status IN ({statuses}) "
+        f"AND (evidence_status IS NULL OR evidence_status IN ({statuses}))"
+    )
+
+
+def export_markdown(connection: sqlite3.Connection, out_path: Path, limit_edges: int, include_inactive: bool) -> None:
     out_path.parent.mkdir(parents=True, exist_ok=True)
     lines: list[str] = ["# SkillGraph Overview", ""]
 
@@ -65,13 +78,14 @@ def export_markdown(connection: sqlite3.Connection, out_path: Path, limit_edges:
         """
         SELECT *
         FROM edge_view
+        {where}
         ORDER BY
           CASE confidence WHEN 'high' THEN 0 WHEN 'medium' THEN 1 ELSE 2 END,
           relation,
           source_name,
           target_name
         LIMIT ?
-        """,
+        """.format(where=live_edge_clause(include_inactive)),
         (limit_edges,),
     ).fetchall()
     for row in rows:
@@ -84,19 +98,26 @@ def export_markdown(connection: sqlite3.Connection, out_path: Path, limit_edges:
     out_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
-def export_mermaid(connection: sqlite3.Connection, out_path: Path, relation: str | None, limit_edges: int) -> None:
+def export_mermaid(connection: sqlite3.Connection, out_path: Path, relation: str | None, limit_edges: int, include_inactive: bool) -> None:
     out_path.parent.mkdir(parents=True, exist_ok=True)
     params: list[object] = []
-    relation_clause = ""
+    clauses = []
     if relation:
-        relation_clause = "WHERE relation = ?"
+        clauses.append("relation = ?")
         params.append(relation)
+    if not include_inactive:
+        statuses = ", ".join(repr(status) for status in LIVE_STATUSES)
+        clauses.append(f"edge_status IN ({statuses})")
+        clauses.append(f"source_status IN ({statuses})")
+        clauses.append(f"target_status IN ({statuses})")
+        clauses.append(f"(evidence_status IS NULL OR evidence_status IN ({statuses}))")
+    where = f"WHERE {' AND '.join(clauses)}" if clauses else ""
     params.append(limit_edges)
     rows = connection.execute(
         f"""
         SELECT *
         FROM edge_view
-        {relation_clause}
+        {where}
         ORDER BY relation, source_name, target_name
         LIMIT ?
         """,
@@ -128,13 +149,15 @@ def main() -> int:
     parser.add_argument("--format", choices=["markdown", "mermaid"], default="markdown")
     parser.add_argument("--relation", help="Mermaid only: restrict to one relation")
     parser.add_argument("--limit-edges", type=int, default=80)
+    parser.add_argument("--include-inactive", action="store_true", help="Include deprecated/reverted graph objects.")
     args = parser.parse_args()
 
     with connect(Path(args.db)) as connection:
+        ensure_audit_schema(connection)
         if args.format == "markdown":
-            export_markdown(connection, Path(args.out), args.limit_edges)
+            export_markdown(connection, Path(args.out), args.limit_edges, args.include_inactive)
         else:
-            export_mermaid(connection, Path(args.out), args.relation, args.limit_edges)
+            export_mermaid(connection, Path(args.out), args.relation, args.limit_edges, args.include_inactive)
 
     print(f"Wrote {args.out}")
     return 0

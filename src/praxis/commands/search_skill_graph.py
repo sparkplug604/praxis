@@ -8,6 +8,7 @@ import sqlite3
 from collections import deque
 from pathlib import Path
 
+from graph_audit import LIVE_STATUSES, ensure_audit_schema
 from praxis.paths import default_root
 
 
@@ -20,20 +21,44 @@ def connect(db_path: Path) -> sqlite3.Connection:
     return connection
 
 
-def resolve_node(connection: sqlite3.Connection, value: str) -> sqlite3.Row | None:
-    row = connection.execute("SELECT * FROM nodes WHERE id = ?", (value,)).fetchone()
+def live_node_clause(include_inactive: bool, alias: str = "n") -> str:
+    if include_inactive:
+        return ""
+    placeholders = ", ".join(f"'{status}'" for status in LIVE_STATUSES)
+    return f"AND {alias}.status IN ({placeholders})"
+
+
+def live_edge_clause(include_inactive: bool) -> str:
+    if include_inactive:
+        return ""
+    placeholders = ", ".join(f"'{status}'" for status in LIVE_STATUSES)
+    return (
+        f"AND edge_status IN ({placeholders}) "
+        f"AND source_status IN ({placeholders}) "
+        f"AND target_status IN ({placeholders}) "
+        f"AND (evidence_status IS NULL OR evidence_status IN ({placeholders}))"
+    )
+
+
+def resolve_node(connection: sqlite3.Connection, value: str, include_inactive: bool = False) -> sqlite3.Row | None:
+    status_clause = "" if include_inactive else f"AND status IN ({', '.join(repr(status) for status in LIVE_STATUSES)})"
+    row = connection.execute(f"SELECT * FROM nodes WHERE id = ? {status_clause}", (value,)).fetchone()
     if row:
         return row
-    row = connection.execute("SELECT n.* FROM aliases a JOIN nodes n ON n.id = a.node_id WHERE a.alias = ?", (value,)).fetchone()
+    row = connection.execute(
+        f"SELECT n.* FROM aliases a JOIN nodes n ON n.id = a.node_id WHERE a.alias = ? {live_node_clause(include_inactive)}",
+        (value,),
+    ).fetchone()
     if row:
         return row
     like = f"%{value}%"
     return connection.execute(
-        """
+        f"""
         SELECT DISTINCT n.*
         FROM nodes n
         LEFT JOIN aliases a ON a.node_id = n.id
-        WHERE n.name LIKE ? OR n.summary LIKE ? OR a.alias LIKE ?
+        WHERE (n.name LIKE ? OR n.summary LIKE ? OR a.alias LIKE ?)
+        {live_node_clause(include_inactive)}
         ORDER BY
           CASE WHEN n.name = ? THEN 0 WHEN n.name LIKE ? THEN 1 ELSE 2 END,
           n.type,
@@ -57,7 +82,7 @@ def node_tags(connection: sqlite3.Connection, node_id: str) -> str:
     return row["tags"] or ""
 
 
-def search_nodes(connection: sqlite3.Connection, query: str, node_type: str | None, limit: int) -> list[sqlite3.Row]:
+def search_nodes(connection: sqlite3.Connection, query: str, node_type: str | None, limit: int, include_inactive: bool = False) -> list[sqlite3.Row]:
     like = f"%{query}%"
     params: list[object] = [like, like, like, like]
     type_clause = ""
@@ -74,6 +99,7 @@ def search_nodes(connection: sqlite3.Connection, query: str, node_type: str | No
         LEFT JOIN tags t ON t.id = nt.tag_id
         WHERE (n.id LIKE ? OR n.name LIKE ? OR n.summary LIKE ? OR a.alias LIKE ?)
         {type_clause}
+        {live_node_clause(include_inactive)}
         ORDER BY n.type, n.name
         LIMIT ?
         """,
@@ -87,6 +113,7 @@ def incident_edges(
     direction: str,
     relation: str | None,
     limit: int,
+    include_inactive: bool = False,
 ) -> list[sqlite3.Row]:
     clauses = []
     params: list[object] = []
@@ -109,6 +136,7 @@ def incident_edges(
         FROM edge_view
         WHERE ({' OR '.join(clauses)})
         {relation_clause}
+        {live_edge_clause(include_inactive)}
         ORDER BY relation, target_name, source_name
         LIMIT ?
         """,
@@ -116,9 +144,14 @@ def incident_edges(
     ).fetchall()
 
 
-def all_adjacent(connection: sqlite3.Connection, node_id: str) -> list[tuple[str, sqlite3.Row]]:
+def all_adjacent(connection: sqlite3.Connection, node_id: str, include_inactive: bool = False) -> list[tuple[str, sqlite3.Row]]:
     rows = connection.execute(
-        "SELECT * FROM edge_view WHERE source_id = ? OR target_id = ?",
+        f"""
+        SELECT *
+        FROM edge_view
+        WHERE (source_id = ? OR target_id = ?)
+        {live_edge_clause(include_inactive)}
+        """,
         (node_id, node_id),
     ).fetchall()
     out: list[tuple[str, sqlite3.Row]] = []
@@ -128,7 +161,7 @@ def all_adjacent(connection: sqlite3.Connection, node_id: str) -> list[tuple[str
     return out
 
 
-def find_path(connection: sqlite3.Connection, start_id: str, end_id: str, max_depth: int) -> list[sqlite3.Row] | None:
+def find_path(connection: sqlite3.Connection, start_id: str, end_id: str, max_depth: int, include_inactive: bool = False) -> list[sqlite3.Row] | None:
     queue = deque([(start_id, [])])
     visited = {start_id}
 
@@ -136,7 +169,7 @@ def find_path(connection: sqlite3.Connection, start_id: str, end_id: str, max_de
         current, path = queue.popleft()
         if len(path) >= max_depth:
             continue
-        for neighbor, edge in all_adjacent(connection, current):
+        for neighbor, edge in all_adjacent(connection, current, include_inactive=include_inactive):
             if neighbor in visited:
                 continue
             new_path = path + [edge]
@@ -157,6 +190,7 @@ def print_nodes(connection: sqlite3.Connection, rows: list[sqlite3.Row]) -> None
         print(f"- id: `{row['id']}`")
         print(f"- type: {row['type']}")
         print(f"- confidence: {row['confidence']}")
+        print(f"- status: {row['status']}")
         tags = node_tags(connection, row["id"])
         if tags:
             print(f"- tags: {tags}")
@@ -176,6 +210,7 @@ def print_edges(rows: list[sqlite3.Row], focus_id: str | None = None) -> None:
         print(f"- source: `{row['source_id']}`")
         print(f"- target: `{row['target_id']}`")
         print(f"- confidence: {row['confidence']}")
+        print(f"- status: {row['status']}")
         if row["summary"]:
             print(f"- summary: {row['summary']}")
         if row["evidence_title"]:
@@ -214,39 +249,48 @@ def print_stats(connection: sqlite3.Connection) -> None:
     print("\n## Relations\n")
     for row in connection.execute("SELECT relation, COUNT(*) AS count FROM edges GROUP BY relation ORDER BY count DESC, relation"):
         print(f"- {row['relation']}: {row['count']}")
+    print("\n## Node Statuses\n")
+    for row in connection.execute("SELECT status, COUNT(*) AS count FROM nodes GROUP BY status ORDER BY count DESC, status"):
+        print(f"- {row['status']}: {row['count']}")
+    print("\n## Edge Statuses\n")
+    for row in connection.execute("SELECT status, COUNT(*) AS count FROM edges GROUP BY status ORDER BY count DESC, status"):
+        print(f"- {row['status']}: {row['count']}")
 
 
 def cmd_search(args: argparse.Namespace) -> int:
     with connect(Path(args.db)) as connection:
-        print_nodes(connection, search_nodes(connection, args.query, args.type, args.limit))
+        ensure_audit_schema(connection)
+        print_nodes(connection, search_nodes(connection, args.query, args.type, args.limit, include_inactive=args.include_inactive))
     return 0
 
 
 def cmd_neighbors(args: argparse.Namespace) -> int:
     with connect(Path(args.db)) as connection:
-        node = resolve_node(connection, args.node)
+        ensure_audit_schema(connection)
+        node = resolve_node(connection, args.node, include_inactive=args.include_inactive)
         if not node:
             print(f"Node not found: {args.node}")
             return 1
         print(f"# Neighbors For {node['name']}\n")
         print(f"- id: `{node['id']}`")
         print(f"- type: {node['type']}\n")
-        rows = incident_edges(connection, node["id"], args.direction, args.relation, args.limit)
+        rows = incident_edges(connection, node["id"], args.direction, args.relation, args.limit, include_inactive=args.include_inactive)
         print_edges(rows, focus_id=node["id"])
     return 0
 
 
 def cmd_path(args: argparse.Namespace) -> int:
     with connect(Path(args.db)) as connection:
-        start = resolve_node(connection, args.start)
-        end = resolve_node(connection, args.end)
+        ensure_audit_schema(connection)
+        start = resolve_node(connection, args.start, include_inactive=args.include_inactive)
+        end = resolve_node(connection, args.end, include_inactive=args.include_inactive)
         if not start:
             print(f"Start node not found: {args.start}")
             return 1
         if not end:
             print(f"End node not found: {args.end}")
             return 1
-        path = find_path(connection, start["id"], end["id"], args.max_depth)
+        path = find_path(connection, start["id"], end["id"], args.max_depth, include_inactive=args.include_inactive)
         print(f"# Path: {start['name']} -> {end['name']}\n")
         if not path:
             print("No path found.")
@@ -268,6 +312,7 @@ def cmd_path(args: argparse.Namespace) -> int:
 
 def cmd_stats(args: argparse.Namespace) -> int:
     with connect(Path(args.db)) as connection:
+        ensure_audit_schema(connection)
         print_stats(connection)
     return 0
 
@@ -275,6 +320,7 @@ def cmd_stats(args: argparse.Namespace) -> int:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--db", default=str(DEFAULT_DB), help="Path to SkillGraph SQLite database")
+    parser.add_argument("--include-inactive", action="store_true", help="Include deprecated/reverted graph objects.")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     search_parser = subparsers.add_parser("search", help="Search nodes by text")

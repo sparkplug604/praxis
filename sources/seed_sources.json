@@ -5,9 +5,9 @@
       "id": "evidence-first-memory",
       "name": "Evidence-First Memory",
       "category": "memory",
-      "description": "Store reusable knowledge with source provenance and review state instead of relying on unsupported recollection.",
-      "agent_rule": "When durable memory affects future behavior, preserve source evidence and confidence.",
-      "runtime_rule": "Require source/capture identifiers for graph or skill updates.",
+      "description": "Store reusable knowledge with source provenance, confidence, audit logs, and rollback state instead of relying on unsupported recollection.",
+      "agent_rule": "When durable memory affects future behavior, preserve source evidence, confidence, and change history.",
+      "runtime_rule": "Require source/capture identifiers and audited change sets for graph or skill updates.",
       "maturity": "emerging"
     },
     {
@@ -24,9 +24,9 @@
     {
       "id": "unsupported-memory-write",
       "name": "Unsupported Memory Write",
-      "description": "A system stores a durable lesson without enough source evidence or user/reviewer approval.",
-      "detection": "Memory notes, graph edges, or generated skills lack source IDs, evidence IDs, or review metadata.",
-      "mitigation": "Use capture, proposal, review, and apply steps before durable graph or skill changes.",
+      "description": "A system stores a durable lesson without enough source evidence, confidence metadata, or rollback path.",
+      "detection": "Memory notes, graph edges, or generated skills lack source IDs, evidence IDs, audit records, or change-set metadata.",
+      "mitigation": "Use capture, provisional graph updates, audited change sets, and rollback before promoting graph knowledge into skills or policies.",
       "severity": "medium"
     }
   ],
@@ -36,8 +36,8 @@
       "id": "capture-before-graph",
       "name": "Capture Before Graph",
       "trigger": "A web page, paper, repo, or local document should become durable Praxis knowledge.",
-      "practice": "Capture the source first, then create a graph proposal, review it, and apply only supported relationships.",
-      "anti_pattern": "Directly adding graph edges or skills from a raw web page without preserved evidence.",
+      "practice": "Capture the source first, then auto-apply provisional graph relationships with evidence and an audited rollback path.",
+      "anti_pattern": "Directly adding graph edges or skills from a raw web page without preserved evidence, confidence metadata, or change history.",
       "evidence_basis": "Praxis seed practice."
     }
   ]

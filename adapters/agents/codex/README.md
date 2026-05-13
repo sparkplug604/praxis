@@ -11,6 +11,6 @@ The Codex adapter exports Praxis skill packages into a Codex-compatible skills d
 ## Target Shape
 
 - Generate/install a `praxis-memory` skill into a configured Codex skills directory.
-- Keep durable writes user-approved unless the user explicitly asks to save a lesson.
-- Expose common commands: hybrid search, graph search, source capture, proposal review, indexing, doctor.
+- Keep durable writes source-linked, confidence-tagged, audited, and rollback-capable.
+- Expose common commands: hybrid search, graph search, ingest, source capture, change inspection, rollback, indexing, doctor.
 - Support rollback by preserving prior skill directories before overwriting.

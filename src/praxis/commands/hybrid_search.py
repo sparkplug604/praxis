@@ -8,6 +8,7 @@ import json
 import sqlite3
 from pathlib import Path
 
+from graph_audit import LIVE_STATUSES, ensure_audit_schema
 from semantic_search import default_dimensions, keyword_hits, vector_hits
 from vector_common import (
     DEFAULT_KG_DB,
@@ -24,7 +25,7 @@ from vector_common import (
 )
 
 
-def graph_matches(kg_db: Path, query: str, limit: int) -> list[sqlite3.Row]:
+def graph_matches(kg_db: Path, query: str, limit: int, *, include_inactive: bool = False) -> list[sqlite3.Row]:
     if not kg_db.exists():
         return []
     like = f"%{query}%"
@@ -37,15 +38,20 @@ def graph_matches(kg_db: Path, query: str, limit: int) -> list[sqlite3.Row]:
         params.extend([token_like, token_like, token_like])
     graph_candidate_limit = max(limit * 10, 50)
     params.append(graph_candidate_limit)
+    status_clause = ""
+    if not include_inactive:
+        status_clause = f"AND n.status IN ({', '.join(repr(status) for status in LIVE_STATUSES)})"
 
     with sqlite3.connect(kg_db) as connection:
         connection.row_factory = sqlite3.Row
+        ensure_audit_schema(connection)
         rows = connection.execute(
             f"""
             SELECT DISTINCT n.*
             FROM nodes n
             LEFT JOIN aliases a ON a.node_id = n.id
-            WHERE {' OR '.join(clauses)}
+            WHERE ({' OR '.join(clauses)})
+            {status_clause}
             LIMIT ?
             """,
             params,
@@ -193,6 +199,7 @@ def main() -> int:
     parser.add_argument("--graph-weight", type=float, default=0.10)
     parser.add_argument("--show-text", action="store_true")
     parser.add_argument("--text-chars", type=int, default=900, help="Characters of each hit to print with --show-text.")
+    parser.add_argument("--include-inactive-graph", action="store_true", help="Include deprecated/reverted SkillGraph hints.")
     parser.add_argument("--env-file", help="Load API credentials from a local .env file without storing them in the DB.")
     args = parser.parse_args()
 
@@ -202,7 +209,7 @@ def main() -> int:
     model = args.model or default_model(args.provider)
     dimensions = args.dimensions or default_dimensions(args.provider, model)
     identifier = model_id(args.provider, model, dimensions)
-    nodes = graph_matches(Path(args.kg_db), args.query, args.limit)
+    nodes = graph_matches(Path(args.kg_db), args.query, args.limit, include_inactive=args.include_inactive_graph)
 
     with connect(Path(args.db)) as connection:
         ensure_schema(connection)

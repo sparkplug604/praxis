@@ -17,8 +17,8 @@ DEFAULT_EVALS = [
         "expect": ["Praxis", "knowledge", "skill"],
     },
     {
-        "query": "source capture before graph update",
-        "expect": ["capture", "graph", "source"],
+        "query": "provisional graph update audit rollback",
+        "expect": ["provisional", "graph", "rollback"],
     },
     {
         "query": "hybrid retrieval semantic keyword graph",

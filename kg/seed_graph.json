@@ -23,7 +23,7 @@
       "id": "concept:source-capture",
       "type": "concept",
       "name": "Source Capture",
-      "summary": "Durable capture of source content, metadata, provenance, and summaries before memory or graph updates are applied.",
+      "summary": "Durable capture of source content, metadata, provenance, and summaries before provisional memory or graph updates are applied.",
       "confidence": "medium",
       "tags": ["seed", "ingestion"]
     },
@@ -84,7 +84,7 @@
       "relation": "feeds",
       "target_id": "concept:skillgraph",
       "evidence_id": "ev:praxis-seed",
-      "summary": "Reviewed captures can provide evidence for graph nodes and edges.",
+      "summary": "Captured sources can provide evidence for provisional graph nodes and edges.",
       "confidence": "medium"
     },
     {

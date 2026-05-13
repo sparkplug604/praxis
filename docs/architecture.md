@@ -13,6 +13,7 @@ flowchart TD
     B --> G["Source captures"]
     C --> H["Vector / hybrid retrieval"]
     D --> I["Concept, source, failure, practice relationships"]
+    D --> R["Audited change sets and rollback"]
     E --> J["Retrieval evals and health checks"]
     F --> K["Agent Skills and workflow exports"]
 
@@ -33,7 +34,7 @@ Praxis Core owns:
 - source identity and provenance
 - source captures and summaries
 - chunk metadata and embedding records
-- graph nodes, edges, evidence, and review state
+- graph nodes, edges, evidence, confidence state, and audit logs
 - watchlists and refresh state
 - skill proposals and generated references
 - eval results and health checks
@@ -60,9 +61,10 @@ sequenceDiagram
 
     User->>Scribe: capture source
     Scribe->>Archive: save raw, summary, metadata
-    Scribe->>Graph: propose graph update
-    User->>Graph: review and apply
+    Scribe->>Graph: auto-apply provisional graph update
+    Graph->>Graph: append audited change set
     Archive->>Index: chunk and embed
+    User->>Graph: inspect, promote, deprecate, or rollback
     Graph->>Forge: identify skill/workflow implications
     Forge->>Agent: export runtime-specific skill
     Agent->>Index: retrieve context during work

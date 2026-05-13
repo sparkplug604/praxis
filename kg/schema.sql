@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS evidence (
   locator TEXT NOT NULL DEFAULT '',
   note TEXT NOT NULL DEFAULT '',
   confidence TEXT NOT NULL DEFAULT 'medium',
+  status TEXT NOT NULL DEFAULT 'active',
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -102,6 +103,33 @@ CREATE TABLE IF NOT EXISTS graph_update_proposals (
   applied_at TEXT
 );
 
+CREATE TABLE IF NOT EXISTS graph_change_sets (
+  id TEXT PRIMARY KEY,
+  action TEXT NOT NULL,
+  mode TEXT NOT NULL DEFAULT 'auto',
+  source_id TEXT NOT NULL DEFAULT '',
+  capture_id TEXT NOT NULL DEFAULT '',
+  proposal_id TEXT NOT NULL DEFAULT '',
+  title TEXT NOT NULL DEFAULT '',
+  summary TEXT NOT NULL DEFAULT '',
+  actor TEXT NOT NULL DEFAULT 'praxis',
+  status TEXT NOT NULL DEFAULT 'applied',
+  metadata_json TEXT NOT NULL DEFAULT '{}',
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  reverted_at TEXT
+);
+
+CREATE TABLE IF NOT EXISTS graph_change_items (
+  id TEXT PRIMARY KEY,
+  change_set_id TEXT NOT NULL REFERENCES graph_change_sets(id) ON DELETE CASCADE,
+  object_type TEXT NOT NULL,
+  object_id TEXT NOT NULL,
+  operation TEXT NOT NULL,
+  before_json TEXT,
+  after_json TEXT,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE IF NOT EXISTS refresh_queue (
   id TEXT PRIMARY KEY,
   source_id TEXT REFERENCES source_registry(id) ON DELETE CASCADE,
@@ -157,6 +185,10 @@ CREATE INDEX IF NOT EXISTS idx_source_registry_status ON source_registry(status)
 CREATE INDEX IF NOT EXISTS idx_source_registry_last_checked ON source_registry(last_checked_at);
 CREATE INDEX IF NOT EXISTS idx_source_captures_source ON source_captures(source_id);
 CREATE INDEX IF NOT EXISTS idx_graph_update_proposals_status ON graph_update_proposals(status);
+CREATE INDEX IF NOT EXISTS idx_graph_change_sets_status ON graph_change_sets(status);
+CREATE INDEX IF NOT EXISTS idx_graph_change_sets_capture ON graph_change_sets(capture_id);
+CREATE INDEX IF NOT EXISTS idx_graph_change_items_change_set ON graph_change_items(change_set_id);
+CREATE INDEX IF NOT EXISTS idx_graph_change_items_object ON graph_change_items(object_type, object_id);
 CREATE INDEX IF NOT EXISTS idx_refresh_queue_next_check ON refresh_queue(next_check_at);
 CREATE INDEX IF NOT EXISTS idx_watchlist_runs_name ON watchlist_runs(watchlist_name);
 CREATE INDEX IF NOT EXISTS idx_research_hits_run ON research_hits(run_id);
@@ -164,7 +196,9 @@ CREATE INDEX IF NOT EXISTS idx_research_hits_watchlist ON research_hits(watchlis
 CREATE INDEX IF NOT EXISTS idx_research_hits_score ON research_hits(score);
 CREATE INDEX IF NOT EXISTS idx_research_hits_status ON research_hits(status);
 
-CREATE VIEW IF NOT EXISTS edge_view AS
+DROP VIEW IF EXISTS edge_view;
+
+CREATE VIEW edge_view AS
 SELECT
   e.id,
   e.relation,
@@ -172,17 +206,21 @@ SELECT
   e.weight,
   e.summary,
   e.status,
+  e.status AS edge_status,
   e.source_id,
   s.name AS source_name,
   s.type AS source_type,
+  s.status AS source_status,
   e.target_id,
   t.name AS target_name,
   t.type AS target_type,
+  t.status AS target_status,
   e.evidence_id,
   ev.title AS evidence_title,
   ev.source_path AS evidence_source_path,
   ev.url AS evidence_url,
-  ev.locator AS evidence_locator
+  ev.locator AS evidence_locator,
+  ev.status AS evidence_status
 FROM edges e
 JOIN nodes s ON s.id = e.source_id
 JOIN nodes t ON t.id = e.target_id

@@ -6,16 +6,16 @@ It turns documents, research, and project notes into two things agents can use: 
 
 Praxis captures source material from web pages, papers, documentation, local files, and project notes. It preserves the raw text, creates summaries, splits content into searchable chunks, maps relationships in a SkillGraph, and runs retrieval checks to make sure important knowledge can actually be found.
 
-Praxis also supports a review step before knowledge becomes durable. Retrieved text is not treated as automatically true. Source evidence stays attached, proposed updates can be reviewed, and accepted knowledge can be exported into `SKILL.md`-style instructions, references, and workflows for agent runtimes.
+Praxis writes captured knowledge into the SkillGraph automatically as provisional, source-linked memory. Retrieved text is not treated as automatically true: source evidence, confidence metadata, change logs, and rollback commands stay attached, and selected knowledge can later be promoted into `SKILL.md`-style instructions, references, and workflows for agent runtimes.
 
-The goal is to help AI agents work from knowledge that is searchable, source-traceable, reviewable, and reusable across tasks.
+The goal is to help AI agents work from knowledge that is searchable, source-traceable, inspectable, reversible, and reusable across tasks.
 
 ## Highlights
 
 - **RAG + skills**: creates searchable knowledge and reusable agent instructions from the same source material.
-- **Source-traceable**: keeps raw text, summaries, metadata, and review notes attached to accepted knowledge.
+- **Source-traceable**: keeps raw text, summaries, metadata, audit logs, and source evidence attached to graph knowledge.
 - **Hybrid search**: combines semantic search, keyword search, and SkillGraph relationships.
-- **Reviewed updates**: separates capture from review before knowledge is accepted for reuse.
+- **Traceable auto-memory**: applies provisional SkillGraph updates automatically with source evidence, confidence metadata, audit logs, and rollback.
 - **Agent-runtime ready**: exports `SKILL.md`-style instructions, references, and workflows.
 - **Private-corpus friendly**: ships without private data, local paths, personal connectors, or runtime lock-in.
 - **Local-first**: runs with SQLite, scripts, and offline embeddings from a normal checkout.
@@ -31,7 +31,7 @@ Praxis is a good fit if you:
 - maintain research, documentation, project notes, or operating procedures that agents should be able to search;
 - want agents to reuse accepted lessons across projects instead of rediscovering the same information;
 - need source evidence attached to retrieved claims before treating them as reliable;
-- want a review step before captured knowledge becomes durable memory;
+- want captured knowledge to be source-traceable, searchable, logged, and easy to roll back;
 - want to turn trusted documentation into `SKILL.md`-style instructions, playbooks, references, or workflows;
 - are building with RAG, agent memory, SkillGraphs, evals, or agent-governance patterns.
 
@@ -39,16 +39,16 @@ Praxis is a good fit if you:
 
 Praxis does not replace RAG, vector databases, knowledge graphs, memory systems, or agent skills. It connects them into one workflow.
 
-RAG helps an agent find information. Skills help an agent repeat useful behavior. Praxis manages the path between source material, reviewed knowledge, searchable retrieval, graph relationships, and reusable agent instructions.
+RAG helps an agent find information. Skills help an agent repeat useful behavior. Praxis manages the path between source material, provisional knowledge, searchable retrieval, graph relationships, and reusable agent instructions.
 
 | System | What It Gives An Agent | What It Does Not Usually Handle | Where Praxis Fits |
 | --- | --- | --- | --- |
-| RAG | Relevant text from documents at task time | Whether the source is trusted, reviewed, current, or reusable outside the current task | Praxis captures sources, preserves evidence, and makes retrieved knowledge part of a maintained workflow |
-| Vector database | Semantic search over embedded chunks | Source review, provenance, graph relationships, skill export, or agent workflow design | Praxis can use vector search as one layer, alongside full-text search, SkillGraph links, and review records |
+| RAG | Relevant text from documents at task time | Whether the source is trusted, current, logged, or reusable outside the current task | Praxis captures sources, preserves evidence, and makes retrieved knowledge part of an audited workflow |
+| Vector database | Semantic search over embedded chunks | Source provenance, graph relationships, skill export, rollback, or agent workflow design | Praxis can use vector search as one layer, alongside full-text search, SkillGraph links, and audit records |
 | Knowledge graph | Relationships between sources, concepts, claims, practices, risks, and tools | Turning those relationships into agent instructions or task-time retrieval workflows | Praxis uses a SkillGraph to make relationships searchable and useful during agent work |
-| Agent memory | Stored facts, lessons, preferences, or prior work across sessions | Evidence quality, staleness, review status, and source traceability | Praxis treats durable memory as reviewed, source-linked knowledge rather than loose remembered text |
-| Agent skills | Reusable instructions, workflows, references, or tool patterns | Where the knowledge came from, how it was reviewed, and how it should be updated | Praxis exports reviewed knowledge into `SKILL.md`-style artifacts with references and supporting context |
-| Praxis | A pipeline for turning source material into searchable knowledge and reusable agent behavior | It is not the agent runtime itself | Praxis manages capture, evidence, review, retrieval, graph relationships, evals, and skill export |
+| Agent memory | Stored facts, lessons, preferences, or prior work across sessions | Evidence quality, staleness, change history, rollback, and source traceability | Praxis treats memory as source-linked, confidence-tagged, reversible knowledge rather than loose remembered text |
+| Agent skills | Reusable instructions, workflows, references, or tool patterns | Where the knowledge came from, how it changed, and how it should be updated | Praxis exports selected knowledge into `SKILL.md`-style artifacts with references and supporting context |
+| Praxis | A pipeline for turning source material into searchable knowledge and reusable agent behavior | It is not the agent runtime itself | Praxis manages capture, evidence, audit logs, rollback, retrieval, graph relationships, evals, and skill export |
 
 ## What Praxis Does
 
@@ -71,7 +71,7 @@ Core capabilities:
 
 - capture web, local file, and local directory sources;
 - preserve raw and summarized evidence;
-- propose, review, and apply SkillGraph updates;
+- auto-apply provisional SkillGraph updates with audited change sets;
 - chunk source material into a semantic index;
 - embed chunks with an offline local-hash provider or a real embedding provider;
 - combine vector, keyword, and graph hints through hybrid search;
@@ -80,7 +80,7 @@ Core capabilities:
 
 ## Core Layers
 
-- `research/`: source captures, inbox scans, reviewed graph proposals, and applied updates.
+- `research/`: source captures, inbox scans, graph proposals, and archived applied updates.
 - `vectors/`: semantic documents, chunks, and embeddings.
 - `kg/`: SkillGraph schema, seed graph, and graph database.
 - `db/`: relational library records for sources, practices, claims, patterns, and benchmarks.
@@ -95,15 +95,16 @@ Core capabilities:
 Praxis treats memory as evidence, not truth. Captured material is stored with source context so retrieved claims can be checked instead of accepted blindly.
 
 - The default data model is designed for documents, notes, research, summaries, graph edges, and skill references rather than secrets, credentials, or raw sensitive transcripts.
-- Internet and document captures are separated from durable memory updates, so new material can be reviewed before it changes the reusable knowledge base.
-- SkillGraph changes move through proposal and review records before they are applied.
-- Graph relationships are represented as evidence-backed links, not absolute facts.
+- Internet and document captures can create provisional SkillGraph updates automatically.
+- Every graph mutation is recorded as a change set with before/after items so it can be inspected or rolled back.
+- Graph relationships are represented as evidence-backed, confidence-tagged links, not absolute facts.
+- Reverted and deprecated graph objects are hidden from normal search/export by default but remain inspectable.
 - Skill artifacts are meant to stay small, inspectable, versioned, and testable.
 - Local/offline embeddings are supported as the default path, with real embedding providers available when credentials and billing are configured.
 
 ## Adapter Strategy
 
-Praxis is designed to stay framework and LLM agnostic. The core system owns source captures, evidence records, chunks, graph relationships, review state, and skill artifacts. Adapters translate those artifacts into the format expected by each agent runtime or orchestration framework.
+Praxis is designed to stay framework and LLM agnostic. The core system owns source captures, evidence records, chunks, graph relationships, audit state, and skill artifacts. Adapters translate those artifacts into the format expected by each agent runtime or orchestration framework.
 
 The adapter layer is intended to support:
 
@@ -147,13 +148,13 @@ PYTHONPATH=src python3 -m praxis search "knowledge to skill loop"
 
 ## Example Workflow
 
-Praxis uses a governed source-ingestion path. The goal is to avoid silently turning random internet text into durable agent memory.
+Praxis uses an optimistic source-ingestion path. The goal is to move quickly without losing provenance, logs, or rollback.
 
 ```bash
-praxis capture "https://example.com/source"
-praxis propose "cap:source-id:hash"
-praxis apply "research/proposals/proposal.json" --dry-run
-praxis apply "research/proposals/proposal.json" --review-notes "Evidence checked."
+praxis ingest "https://example.com/source"
+praxis changes list
+praxis changes show "chg:..."
+praxis rollback "chg:..."
 praxis chunk --changed-only
 praxis embed --provider local-hash
 praxis search "what did this source teach us?"
@@ -163,12 +164,12 @@ The usual flow is:
 
 ```mermaid
 flowchart LR
-    A["Capture Source"] --> B["Review Summary"]
-    B --> C["Propose Graph Update"]
-    C --> D["Dry Run"]
-    D --> E["Apply With Review Notes"]
-    E --> F["Chunk / Embed"]
-    F --> G["Search / Export Skills"]
+    A["Capture Source"] --> B["Summarize Source"]
+    B --> C["Auto-Apply Provisional Graph Update"]
+    C --> D["Append Audit Log"]
+    D --> E["Search / Use"]
+    D --> F["Rollback If Needed"]
+    E --> G["Promote / Export Skills"]
 ```
 
 ## Command Reference
@@ -178,6 +179,9 @@ Script interface:
 ```bash
 python3 scripts/hybrid_search.py "test-backed refactoring"
 python3 scripts/search_skill_graph.py search "refactoring"
+python3 scripts/ingest_source.py "https://example.com/source"
+python3 scripts/graph_changes.py list
+python3 scripts/rollback_graph_change.py "chg:..."
 python3 scripts/research_source.py "https://example.com/source"
 python3 scripts/propose_graph_update.py "cap:source-id:hash"
 python3 scripts/apply_graph_update.py "research/proposals/proposal.json" --dry-run
@@ -194,6 +198,9 @@ praxis bootstrap
 praxis doctor --require-index
 praxis search "knowledge to skill loop"
 praxis graph search "SkillGraph"
+praxis ingest "https://example.com/source"
+praxis changes list
+praxis rollback "chg:..."
 praxis capture "https://example.com/source"
 praxis chunk --changed-only
 praxis embed --provider local-hash
@@ -211,7 +218,7 @@ Praxis is early-stage and intentionally local-first.
 - It is not a hosted service.
 - It is not a replacement for production vector databases.
 - It is not a full autonomous agent runtime.
-- It does not automatically trust or apply internet discoveries.
+- It does not automatically promote provisional graph updates into high-trust skills or policies.
 - It does not ship with private corpora or user-specific connectors.
 - It does not yet provide polished adapters for every target framework.
 
