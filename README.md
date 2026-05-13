@@ -72,9 +72,10 @@ Core capabilities:
 - capture web, local file, and local directory sources;
 - preserve raw and summarized evidence;
 - auto-apply provisional SkillGraph updates with audited change sets;
+- promote, deprecate, or rollback graph updates after inspection;
 - chunk source material into a semantic index;
 - embed chunks with an offline local-hash provider or a real embedding provider;
-- combine vector, keyword, and graph hints through hybrid search;
+- combine vector, keyword, and graph hints through explainable hybrid search;
 - export graph and library material into skill/reference artifacts;
 - run health checks and retrieval evals.
 
@@ -141,10 +142,12 @@ Praxis uses an optimistic source-ingestion path. The goal is to move quickly wit
 praxis ingest "https://example.com/source"
 praxis changes list
 praxis changes show "chg:..."
+praxis promote "chg:..."
+praxis deprecate "chg:..."
 praxis rollback "chg:..."
 praxis chunk --changed-only
 praxis embed --provider local-hash
-praxis search "what did this source teach us?"
+praxis search "what did this source teach us?" --explain
 ```
 
 The usual flow is:

@@ -21,6 +21,14 @@ def connect(db_path: Path) -> sqlite3.Connection:
     return connection
 
 
+def ensure_schema_for_read(connection: sqlite3.Connection) -> None:
+    try:
+        ensure_audit_schema(connection)
+    except sqlite3.OperationalError as exc:
+        if "readonly" not in str(exc).lower():
+            raise
+
+
 def live_node_clause(include_inactive: bool, alias: str = "n") -> str:
     if include_inactive:
         return ""
@@ -259,14 +267,14 @@ def print_stats(connection: sqlite3.Connection) -> None:
 
 def cmd_search(args: argparse.Namespace) -> int:
     with connect(Path(args.db)) as connection:
-        ensure_audit_schema(connection)
+        ensure_schema_for_read(connection)
         print_nodes(connection, search_nodes(connection, args.query, args.type, args.limit, include_inactive=args.include_inactive))
     return 0
 
 
 def cmd_neighbors(args: argparse.Namespace) -> int:
     with connect(Path(args.db)) as connection:
-        ensure_audit_schema(connection)
+        ensure_schema_for_read(connection)
         node = resolve_node(connection, args.node, include_inactive=args.include_inactive)
         if not node:
             print(f"Node not found: {args.node}")
@@ -281,7 +289,7 @@ def cmd_neighbors(args: argparse.Namespace) -> int:
 
 def cmd_path(args: argparse.Namespace) -> int:
     with connect(Path(args.db)) as connection:
-        ensure_audit_schema(connection)
+        ensure_schema_for_read(connection)
         start = resolve_node(connection, args.start, include_inactive=args.include_inactive)
         end = resolve_node(connection, args.end, include_inactive=args.include_inactive)
         if not start:
@@ -312,7 +320,7 @@ def cmd_path(args: argparse.Namespace) -> int:
 
 def cmd_stats(args: argparse.Namespace) -> int:
     with connect(Path(args.db)) as connection:
-        ensure_audit_schema(connection)
+        ensure_schema_for_read(connection)
         print_stats(connection)
     return 0
 

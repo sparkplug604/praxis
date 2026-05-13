@@ -6,7 +6,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from graph_audit import rollback_change_set
+from graph_audit import RollbackConflictError, rollback_change_set
 from research_common import DEFAULT_ROOT, connect
 
 
@@ -15,12 +15,19 @@ def main() -> int:
     parser.add_argument("change_set", help="graph_change_sets.id to rollback")
     parser.add_argument("--root", default=str(DEFAULT_ROOT), help="Praxis root")
     parser.add_argument("--actor", default="praxis")
+    parser.add_argument("--force", action="store_true", help="Rollback even if affected objects changed after the change set.")
     args = parser.parse_args()
 
     db_path = Path(args.root) / "kg" / "skill_graph.sqlite"
     with connect(db_path) as connection:
         try:
-            count = rollback_change_set(connection, args.change_set, actor=args.actor)
+            count = rollback_change_set(connection, args.change_set, actor=args.actor, force=args.force)
+        except RollbackConflictError as exc:
+            print("Refusing rollback because affected graph objects changed after this change set:")
+            for conflict in exc.conflicts:
+                print(f"- {conflict}")
+            print("Use --force to rollback anyway.")
+            return 2
         except ValueError as exc:
             print(str(exc))
             return 1

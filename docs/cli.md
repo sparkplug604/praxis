@@ -25,6 +25,7 @@ Search the corpus and SkillGraph:
 
 ```bash
 praxis search "knowledge to skill loop"
+praxis search "knowledge to skill loop" --explain
 praxis graph search "SkillGraph"
 ```
 
@@ -39,7 +40,10 @@ Inspect or rollback graph changes:
 ```bash
 praxis changes list
 praxis changes show "chg:..."
+praxis promote "chg:..."
+praxis deprecate "chg:..."
 praxis rollback "chg:..."
+praxis rollback "chg:..." --force
 ```
 
 Refresh retrieval indexes:
@@ -58,6 +62,8 @@ python3 scripts/hybrid_search.py "test-backed refactoring"
 python3 scripts/search_skill_graph.py search "refactoring"
 python3 scripts/ingest_source.py "https://example.com/source"
 python3 scripts/graph_changes.py list
+python3 scripts/promote_graph_change.py "chg:..."
+python3 scripts/deprecate_graph_change.py "chg:..."
 python3 scripts/rollback_graph_change.py "chg:..."
 python3 scripts/research_source.py "https://example.com/source"
 python3 scripts/propose_graph_update.py "cap:source-id:hash"

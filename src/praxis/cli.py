@@ -22,6 +22,8 @@ COMMANDS = {
     "propose": ("propose_graph_update.py", "Create an inspectable graph proposal."),
     "apply": ("apply_graph_update.py", "Apply a graph proposal with an audit log."),
     "changes": ("graph_changes.py", "Inspect audited SkillGraph change sets."),
+    "promote": ("promote_graph_change.py", "Promote objects from an audited SkillGraph change set."),
+    "deprecate": ("deprecate_graph_change.py", "Deprecate objects from an audited SkillGraph change set."),
     "rollback": ("rollback_graph_change.py", "Rollback an audited SkillGraph change set."),
     "scan": ("scan_watchlist.py", "Scan a configured research watchlist."),
     "capture-hit": ("capture_research_hit.py", "Promote a watchlist hit into a source capture."),

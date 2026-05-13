@@ -23,6 +23,14 @@ def _row_dict(row: sqlite3.Row | None) -> dict[str, Any] | None:
     return dict(row) if row else None
 
 
+class RollbackConflictError(RuntimeError):
+    """Raised when rollback would overwrite a later graph change."""
+
+    def __init__(self, conflicts: list[str]) -> None:
+        self.conflicts = conflicts
+        super().__init__("Rollback conflict: " + "; ".join(conflicts))
+
+
 def _ensure_column(connection: sqlite3.Connection, table: str, column: str, definition: str) -> None:
     columns = {row["name"] for row in connection.execute(f"PRAGMA table_info({table})")}
     if column not in columns:
@@ -272,13 +280,140 @@ def mark_graph_object_status(connection: sqlite3.Connection, object_type: str, o
         raise ValueError(f"Unsupported graph object type: {object_type}")
 
 
-def rollback_change_set(connection: sqlite3.Connection, change_set_id: str, *, actor: str = "praxis") -> int:
+def change_graph_object_status(
+    connection: sqlite3.Connection,
+    *,
+    object_type: str,
+    object_id: str,
+    status: str,
+    change_set_id: str,
+) -> bool:
+    before = fetch_graph_object(connection, object_type, object_id)
+    if before is None:
+        raise ValueError(f"{object_type} not found: {object_id}")
+    mark_graph_object_status(connection, object_type, object_id, status)
+    after = fetch_graph_object(connection, object_type, object_id)
+    log_change_item(
+        connection,
+        change_set_id=change_set_id,
+        object_type=object_type,
+        object_id=object_id,
+        operation=f"status:{status}",
+        before=before,
+        after=after,
+    )
+    return before.get("status") != status
+
+
+def change_change_set_object_statuses(
+    connection: sqlite3.Connection,
+    source_change_set_id: str,
+    *,
+    status: str,
+    action: str,
+    actor: str = "praxis",
+    include_evidence: bool = True,
+) -> int:
+    ensure_audit_schema(connection)
+    source_change_set = connection.execute("SELECT * FROM graph_change_sets WHERE id = ?", (source_change_set_id,)).fetchone()
+    if not source_change_set:
+        raise ValueError(f"Change set not found: {source_change_set_id}")
+
+    rows = connection.execute(
+        """
+        SELECT DISTINCT object_type, object_id
+        FROM graph_change_items
+        WHERE change_set_id = ?
+        ORDER BY object_type, object_id
+        """,
+        (source_change_set_id,),
+    ).fetchall()
+
+    targets: list[tuple[str, str]] = []
+    missing: list[str] = []
+    for row in rows:
+        object_type = row["object_type"]
+        if object_type == "evidence" and not include_evidence:
+            continue
+        object_id = row["object_id"]
+        current = fetch_graph_object(connection, object_type, object_id)
+        if current is None:
+            missing.append(f"{object_type} `{object_id}`")
+            continue
+        if current.get("status") != status:
+            targets.append((object_type, object_id))
+    if missing:
+        raise ValueError("Cannot change status for missing graph objects: " + ", ".join(missing))
+    if not targets:
+        return 0
+
+    title = f"{action.title()} {source_change_set_id}"
+    change_set_id = create_change_set(
+        connection,
+        action=action,
+        mode="manual",
+        title=title,
+        summary=f"Set graph objects from {source_change_set_id} to {status}.",
+        source_id=source_change_set["source_id"],
+        capture_id=source_change_set["capture_id"],
+        proposal_id=source_change_set["proposal_id"],
+        actor=actor,
+        metadata={"target_change_set": source_change_set_id, "status": status},
+    )
+
+    changed = 0
+    for object_type, object_id in targets:
+        if change_graph_object_status(
+            connection,
+            object_type=object_type,
+            object_id=object_id,
+            status=status,
+            change_set_id=change_set_id,
+        ):
+            changed += 1
+    return changed
+
+
+def _loads(value: str | None) -> dict[str, Any] | None:
+    return json.loads(value) if value else None
+
+
+def _graph_object_matches_expected(current: dict[str, Any] | None, expected: dict[str, Any] | None) -> bool:
+    return _json(current) == _json(expected)
+
+
+def rollback_conflicts(connection: sqlite3.Connection, rows: list[sqlite3.Row]) -> list[str]:
+    conflicts = []
+    for row in rows:
+        object_type = row["object_type"]
+        object_id = row["object_id"]
+        expected_after = _loads(row["after_json"])
+        current = fetch_graph_object(connection, object_type, object_id)
+        if not _graph_object_matches_expected(current, expected_after):
+            conflicts.append(f"{object_type} `{object_id}` changed after the audited change set")
+    return conflicts
+
+
+def rollback_change_set(connection: sqlite3.Connection, change_set_id: str, *, actor: str = "praxis", force: bool = False) -> int:
     ensure_audit_schema(connection)
     change_set = connection.execute("SELECT * FROM graph_change_sets WHERE id = ?", (change_set_id,)).fetchone()
     if not change_set:
         raise ValueError(f"Change set not found: {change_set_id}")
     if change_set["status"] == "reverted":
         return 0
+
+    rows = connection.execute(
+        """
+        SELECT *
+        FROM graph_change_items
+        WHERE change_set_id = ?
+        ORDER BY created_at DESC, id DESC
+        """,
+        (change_set_id,),
+    ).fetchall()
+    conflicts = rollback_conflicts(connection, rows)
+    if conflicts and not force:
+        raise RollbackConflictError(conflicts)
 
     rollback_id = create_change_set(
         connection,
@@ -293,20 +428,11 @@ def rollback_change_set(connection: sqlite3.Connection, change_set_id: str, *, a
         metadata={"reverts": change_set_id},
     )
 
-    rows = connection.execute(
-        """
-        SELECT *
-        FROM graph_change_items
-        WHERE change_set_id = ?
-        ORDER BY created_at DESC, id DESC
-        """,
-        (change_set_id,),
-    ).fetchall()
     reverted = 0
     for row in rows:
         object_type = row["object_type"]
         object_id = row["object_id"]
-        before = json.loads(row["before_json"]) if row["before_json"] else None
+        before = _loads(row["before_json"])
         current = fetch_graph_object(connection, object_type, object_id)
         if before is None:
             mark_graph_object_status(connection, object_type, object_id, "reverted")

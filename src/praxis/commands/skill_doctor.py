@@ -71,10 +71,16 @@ def main() -> int:
         "db/schema.sql",
         "kg/schema.sql",
         "kg/seed_graph.json",
+        "docs/cli.md",
         "scripts/research_source.py",
+        "scripts/ingest_source.py",
         "scripts/chunk_sources.py",
         "scripts/index_vectors.py",
         "scripts/hybrid_search.py",
+        "scripts/graph_changes.py",
+        "scripts/rollback_graph_change.py",
+        "scripts/promote_graph_change.py",
+        "scripts/deprecate_graph_change.py",
         "adapters/README.md",
     ]:
         ok &= check_path(rel, ROOT / rel)
@@ -86,7 +92,15 @@ def main() -> int:
     )
     ok &= check_sqlite_tables(
         KG_DB,
-        ["nodes", "edges", "source_registry", "source_captures"],
+        [
+            "nodes",
+            "edges",
+            "source_registry",
+            "source_captures",
+            "graph_update_proposals",
+            "graph_change_sets",
+            "graph_change_items",
+        ],
         required=args.require_index,
     )
     ok &= check_sqlite_tables(

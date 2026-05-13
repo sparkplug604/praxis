@@ -8,7 +8,7 @@ import json
 import sqlite3
 from pathlib import Path
 
-from graph_audit import LIVE_STATUSES, ensure_audit_schema
+from graph_audit import LIVE_STATUSES
 from semantic_search import default_dimensions, keyword_hits, vector_hits
 from vector_common import (
     DEFAULT_KG_DB,
@@ -44,7 +44,6 @@ def graph_matches(kg_db: Path, query: str, limit: int, *, include_inactive: bool
 
     with sqlite3.connect(kg_db) as connection:
         connection.row_factory = sqlite3.Row
-        ensure_audit_schema(connection)
         rows = connection.execute(
             f"""
             SELECT DISTINCT n.*
@@ -103,6 +102,16 @@ def graph_score(row, nodes: list[sqlite3.Row]) -> float:
     return min(score, 2.0) / 2.0
 
 
+def chunk_graph_links(row: sqlite3.Row) -> list[str]:
+    try:
+        value = json.loads(row["graph_node_ids_json"] or "[]")
+    except (KeyError, json.JSONDecodeError, TypeError):
+        return []
+    if not isinstance(value, list):
+        return []
+    return [str(item) for item in value]
+
+
 def combine_hits(vector_results: list[dict], keyword_results: list[dict], nodes: list[sqlite3.Row], weights: dict[str, float]) -> list[dict]:
     combined: dict[str, dict] = {}
     max_vector = max([hit["score"] for hit in vector_results], default=1.0) or 1.0
@@ -129,7 +138,52 @@ def combine_hits(vector_results: list[dict], keyword_results: list[dict], nodes:
     return sorted(combined.values(), key=lambda item: item["score"], reverse=True)
 
 
-def print_results(results: list[dict], nodes: list[sqlite3.Row], *, show_text: bool, limit: int, text_chars: int) -> None:
+def print_explanation(item: dict, nodes: list[sqlite3.Row]) -> None:
+    row = item["row"]
+    print(
+        "   explain: "
+        f"score={item['score']:.3f}; "
+        f"vector={item['vector']:.3f}; "
+        f"keyword={item['keyword']:.3f}; "
+        f"graph={item['graph']:.3f}"
+    )
+    if row["source_id"]:
+        print(f"   source_id: {row['source_id']}")
+    if row["capture_id"]:
+        print(f"   capture_id: {row['capture_id']}")
+    if row["confidence"]:
+        print(f"   confidence: {row['confidence']}")
+    links = chunk_graph_links(row)
+    if links:
+        print(f"   graph_links: {', '.join(links[:8])}")
+    if nodes:
+        hints = ", ".join(node["id"] for node in nodes[:8])
+        print(f"   graph_hints_used: {hints}")
+
+
+def result_log_payload(item: dict) -> dict:
+    row = item["row"]
+    return {
+        "chunk_id": row["id"],
+        "source_id": row["source_id"],
+        "capture_id": row["capture_id"],
+        "score": round(float(item["score"]), 6),
+        "vector": round(float(item["vector"]), 6),
+        "keyword": round(float(item["keyword"]), 6),
+        "graph": round(float(item["graph"]), 6),
+        "graph_links": chunk_graph_links(row),
+    }
+
+
+def print_results(
+    results: list[dict],
+    nodes: list[sqlite3.Row],
+    *,
+    show_text: bool,
+    limit: int,
+    text_chars: int,
+    explain: bool,
+) -> None:
     if nodes:
         print("# SkillGraph Hints\n")
         for node in nodes[:8]:
@@ -152,12 +206,21 @@ def print_results(results: list[dict], nodes: list[sqlite3.Row], *, show_text: b
         print(f"   path: {row['path']}")
         if row["url"]:
             print(f"   url: {row['url']}")
+        if explain:
+            print_explanation(item, nodes)
         if show_text:
             print(f"   text: {' '.join(row['text'].split())[:text_chars]}")
         print()
 
 
-def log_retrieval(connection, query: str, model_identifier: str, results: list[dict], nodes: list[sqlite3.Row]) -> None:
+def log_retrieval(
+    connection,
+    query: str,
+    model_identifier: str,
+    results: list[dict],
+    nodes: list[sqlite3.Row],
+    weights: dict[str, float],
+) -> None:
     try:
         connection.execute(
             """
@@ -172,7 +235,9 @@ def log_retrieval(connection, query: str, model_identifier: str, results: list[d
                 json.dumps(
                     {
                         "top_chunk_ids": [item["row"]["id"] for item in results[:10]],
+                        "top_results": [result_log_payload(item) for item in results[:10]],
                         "graph_nodes": [node["id"] for node in nodes[:10]],
+                        "weights": weights,
                     },
                     sort_keys=True,
                 ),
@@ -198,6 +263,7 @@ def main() -> int:
     parser.add_argument("--keyword-weight", type=float, default=0.45)
     parser.add_argument("--graph-weight", type=float, default=0.10)
     parser.add_argument("--show-text", action="store_true")
+    parser.add_argument("--explain", action="store_true", help="Print score components, source ids, and graph hints for each result.")
     parser.add_argument("--text-chars", type=int, default=900, help="Characters of each hit to print with --show-text.")
     parser.add_argument("--include-inactive-graph", action="store_true", help="Include deprecated/reverted SkillGraph hints.")
     parser.add_argument("--env-file", help="Load API credentials from a local .env file without storing them in the DB.")
@@ -215,15 +281,16 @@ def main() -> int:
         ensure_schema(connection)
         vectors = vector_hits(connection, args.query, provider=args.provider, model=model, dimensions=dimensions, limit=args.candidate_limit)
         keywords = keyword_hits(connection, args.query, limit=args.candidate_limit)
+        weights = {"vector": args.vector_weight, "keyword": args.keyword_weight, "graph": args.graph_weight}
         results = combine_hits(
             vectors,
             keywords,
             nodes,
-            {"vector": args.vector_weight, "keyword": args.keyword_weight, "graph": args.graph_weight},
+            weights,
         )
-        log_retrieval(connection, args.query, identifier, results, nodes)
+        log_retrieval(connection, args.query, identifier, results, nodes, weights)
 
-    print_results(results, nodes, show_text=args.show_text, limit=args.limit, text_chars=args.text_chars)
+    print_results(results, nodes, show_text=args.show_text, limit=args.limit, text_chars=args.text_chars, explain=args.explain)
     return 0
 
 
