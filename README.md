@@ -74,29 +74,17 @@ flowchart LR
     H --> F
 ```
 
-Core capabilities:
+The Praxis core is the Python package and CLI. It owns the work that turns sources into traceable, searchable, reusable agent knowledge:
 
-- capture web, local file, and local directory sources;
-- preserve raw and summarized evidence;
-- auto-apply provisional SkillGraph updates with audited change sets;
-- promote, deprecate, or rollback graph updates after inspection;
-- chunk source material into a semantic index;
-- embed chunks with an offline local-hash provider or a real embedding provider;
-- combine vector, keyword, and graph hints through explainable hybrid search;
-- export graph and library material into skill/reference artifacts;
-- run health checks and retrieval evals.
+- `capture` and `ingest` bring in web sources, local files, directories, papers, notes, and selected watchlist hits.
+- `propose`, `apply`, `changes`, `promote`, `deprecate`, and `rollback` manage SkillGraph updates through audited change sets.
+- `chunk` and `embed` turn captured material into semantic documents, searchable chunks, and embeddings.
+- `search`, `semantic-search`, `graph`, and `library` retrieve knowledge through semantic search, keyword search, graph traversal, and relational lookup.
+- `scan`, `capture-hit`, and `refresh` help discover and refresh trusted sources over time.
+- `export-graph` and `export-skill-refs` turn stored graph and database knowledge into reusable Markdown references and skill-supporting files.
+- `doctor`, `eval`, and `check-embeddings` verify that the local knowledge layer is initialized, searchable, and ready to use.
 
-## Core Layers
-
-- `research/`: source captures, inbox scans, graph proposals, and archived applied updates.
-- `vectors/`: semantic documents, chunks, and embeddings.
-- `kg/`: SkillGraph schema, seed graph, and graph database.
-- `db/`: relational library records for sources, practices, claims, patterns, and benchmarks.
-- `scripts/`: local CLI tools for capture, indexing, graph updates, search, and health checks.
-- `watchlists/`: recurring research/search targets.
-- `skills/`: Praxis-owned skill artifacts and generated references.
-- `adapters/`: integration notes and future adapter code for agent runtimes and frameworks.
-- `docs/`: architecture notes, product framing, and implementation plans.
+Those commands write to a local workspace: `research/` for captures and proposals, `vectors/` for chunks and embeddings, `kg/` for the SkillGraph, `db/` for relational records, `watchlists/` for discovery targets, `skills/` for generated references, and `adapters/` for runtime integration notes.
 
 ## Trust, Traceability, And Rollback
 
@@ -162,7 +150,7 @@ praxis embed --provider local-hash
 praxis search "what did this source teach us?" --explain
 ```
 
-The loop looks like this:
+A source moves through Praxis like this:
 
 ```mermaid
 flowchart LR
