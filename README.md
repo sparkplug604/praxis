@@ -141,32 +141,37 @@ PYTHONPATH=src python3 -m praxis search "knowledge to skill loop"
 
 For the full CLI reference, see [docs/cli.md](docs/cli.md). For adapter and architecture notes, see [docs/architecture.md](docs/architecture.md).
 
-## Example Workflow
+## How Knowledge Moves Through Praxis
 
-Praxis uses an optimistic source-ingestion path. The goal is to move quickly without losing provenance, logs, or rollback.
+Praxis is built around a fast, reversible ingestion loop.
+
+A source can be captured, written into provisional SkillGraph memory, inspected, promoted or deprecated, indexed for retrieval, and searched with explanations. New knowledge can move quickly, but it keeps provenance, audit logs, and rollback attached.
 
 ```bash
 praxis ingest "https://example.com/source"
+
 praxis changes list
 praxis changes show "chg:..."
+
 praxis promote "chg:..."
 praxis deprecate "chg:..."
 praxis rollback "chg:..."
+
 praxis chunk --changed-only
 praxis embed --provider local-hash
 praxis search "what did this source teach us?" --explain
 ```
 
-The usual flow is:
+The loop looks like this:
 
 ```mermaid
 flowchart LR
-    A["Capture Source"] --> B["Summarize Source"]
-    B --> C["Auto-Apply Provisional Graph Update"]
-    C --> D["Append Audit Log"]
-    D --> E["Search / Use"]
-    D --> F["Rollback If Needed"]
-    E --> G["Promote / Export Skills"]
+    A["Capture source"] --> B["Create provisional graph memory"]
+    B --> C["Record audit log"]
+    C --> D["Inspect / promote / deprecate / rollback"]
+    D --> E["Chunk and embed"]
+    E --> F["Search with explanations"]
+    F --> G["Export reusable references or skills"]
 ```
 
 ## What Praxis Does Not Do (Yet)
