@@ -14,13 +14,13 @@ Praxis gives agents a way to build on what they learn without dragging a giant c
 
 ## Highlights
 
-- **RAG + skills**: creates searchable knowledge and reusable agent instructions from the same source material.
-- **Source-traceable**: keeps raw text, summaries, metadata, audit logs, and source evidence attached to graph knowledge.
-- **Hybrid search**: combines semantic search, keyword search, and SkillGraph relationships.
-- **Traceable auto-memory**: applies provisional SkillGraph updates automatically with source evidence, confidence metadata, audit logs, and rollback.
-- **Agent-runtime ready**: exports `SKILL.md`-style instructions, references, and workflows.
-- **Private-corpus friendly**: ships without private data, local paths, personal connectors, or runtime lock-in.
-- **Local-first**: runs with SQLite, scripts, and offline embeddings from a normal checkout.
+- **Turn any useful source into agent knowledge**: capture links, files, papers, docs, notes, directories, and selected watchlist hits with source metadata preserved.
+- **Make agent memory traceable by default**: store raw text, summaries, chunks, hashes, source IDs, confidence, graph links, and audit logs in local SQLite databases.
+- **Find the right context and see why it matched**: combine semantic search, keyword search, and SkillGraph context, with `--explain` output showing scores, sources, confidence, and graph hints.
+- **Move fast without poisoning memory**: ingest captured sources into provisional SkillGraph memory, then inspect, promote, deprecate, or roll back changes through audited change sets.
+- **Turn knowledge into reusable agent instructions**: export selected database and SkillGraph material into Markdown references and `SKILL.md`-style supporting files for agent runtimes.
+- **Keep agent knowledge fresh from trusted sources**: define watchlists for any topic, scan trusted research and web sources, rank hits, and capture the useful ones into the same evidence pipeline.
+- **Own the knowledge layer**: run with SQLite, scripts, local-hash embeddings, and optional OpenAI embeddings from a normal checkout, without locking into one hosted service, model, or agent runtime.
 
 ## Who This Is For
 
