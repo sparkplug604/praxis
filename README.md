@@ -24,18 +24,23 @@ Praxis gives agents a way to build on what they learn without dragging a giant c
 
 ## Who This Is For
 
-Praxis is for people building AI agents that need to remember, retrieve, and reuse knowledge in a way that can be checked later.
+Praxis is for builders who are tired of agents starting from zero.
 
-It is useful when prompt notes, ad hoc documents, or scattered research are no longer enough. Praxis helps when you need agents to work from a maintained knowledge base, not whatever context happens to fit in one chat window.
+Every project teaches you something: a better workflow, a useful paper, a hard-won debugging lesson, a design decision, a prompt pattern, a failure mode. Most of that knowledge disappears into chat history, random docs, or oversized skill files.
 
-Praxis is a good fit if you:
+Praxis gives that knowledge somewhere to go.
 
-- maintain research, documentation, project notes, or operating procedures that agents should be able to search;
-- want agents to reuse accepted lessons across projects instead of rediscovering the same information;
-- need source evidence attached to retrieved claims before treating them as reliable;
-- want captured knowledge to be source-traceable, searchable, logged, and easy to roll back;
-- want to turn trusted documentation into `SKILL.md`-style instructions, playbooks, references, or workflows;
-- are building with RAG, agent memory, SkillGraphs, evals, or agent-governance patterns.
+Use Praxis when you want to turn the work you are already doing into a growing agent knowledge layer: searchable, source-backed, reversible, and reusable as skills.
+
+Praxis is especially useful if you:
+
+- build coding agents, research agents, support agents, ops agents, or internal AI tools that need durable knowledge;
+- collect docs, papers, web pages, project notes, examples, SOPs, and decisions faster than you can organize them;
+- are tired of agents rediscovering the same lessons every time a new chat, project, or session starts;
+- want RAG that is more than a pile of chunks: source-backed, searchable, explainable, and connected to graph memory;
+- want skills and agent instructions that stay focused instead of becoming giant always-on prompt files;
+- need memory that can update quickly without becoming an untraceable junk drawer;
+- want agents to work from a maintained knowledge layer instead of whatever happens to fit in one prompt.
 
 ## How Praxis Relates To RAG And Skills
 
