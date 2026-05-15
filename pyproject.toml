@@ -5,14 +5,31 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "praxis-ktos"
 version = "0.1.0"
-description = "Agent-agnostic knowledge-to-skill framework."
+description = "Local-first RAG and agent skills framework for source-traceable agent memory."
 readme = "README.md"
 requires-python = ">=3.9"
 license = { text = "MIT" }
 authors = [
   { name = "Praxis contributors" }
 ]
-keywords = ["agents", "rag", "skills", "knowledge-graph", "memory"]
+keywords = [
+  "ai-agents",
+  "agent-memory",
+  "agent-skills",
+  "rag",
+  "retrieval-augmented-generation",
+  "knowledge-graph",
+  "semantic-search",
+  "hybrid-search",
+  "context-engineering",
+  "llm",
+  "llmops",
+  "agentic-ai",
+  "ai-workflows",
+  "local-first",
+  "sqlite",
+  "skillgraph",
+]
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Intended Audience :: Developers",
@@ -24,6 +41,12 @@ classifiers = [
   "Programming Language :: Python :: 3.12",
   "Topic :: Software Development :: Libraries",
 ]
+
+[project.urls]
+Homepage = "https://github.com/sparkplug604/praxis"
+Repository = "https://github.com/sparkplug604/praxis"
+Issues = "https://github.com/sparkplug604/praxis/issues"
+Documentation = "https://github.com/sparkplug604/praxis#readme"
 
 [project.scripts]
 praxis = "praxis.cli:main"

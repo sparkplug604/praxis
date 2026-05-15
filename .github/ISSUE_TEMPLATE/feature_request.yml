@@ -1,0 +1,43 @@
+name: Feature request
+description: Suggest an improvement, adapter, workflow, or research direction.
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Praxis is most useful when feature requests connect a real agent workflow to a concrete source, retrieval, graph, rollback, or skill-export need.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem should this solve?
+      description: Describe the agent workflow or user pain.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: What should Praxis do differently?
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - source capture
+        - retrieval / search
+        - SkillGraph
+        - agent skills
+        - adapters
+        - evals
+        - watchlists
+        - docs
+        - other
+  - type: textarea
+    id: examples
+    attributes:
+      label: Examples or references
+      description: Link relevant docs, tools, issues, papers, or workflows.

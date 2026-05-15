@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "If Praxis helps your work, please cite the project repository."
+title: "Praxis"
+abstract: "Praxis is a local-first RAG and agent skills framework for source-traceable agent memory, SkillGraph retrieval, and reusable AI workflows."
+type: software
+version: "0.1.0"
+date-released: "2026-05-15"
+authors:
+  - name: "Praxis contributors"
+repository-code: "https://github.com/sparkplug604/praxis"
+url: "https://github.com/sparkplug604/praxis"
+license: MIT
+keywords:
+  - ai-agents
+  - agent-memory
+  - agent-skills
+  - rag
+  - knowledge-graph
+  - semantic-search
+  - local-first

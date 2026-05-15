@@ -1,0 +1,59 @@
+name: Bug report
+description: Report something that is broken, confusing, or unsafe.
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve Praxis. Please include enough detail for someone else to reproduce the issue from a clean checkout.
+  - type: textarea
+    id: summary
+    attributes:
+      label: What happened?
+      description: Describe the bug and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: How can we reproduce it?
+      description: Include commands, inputs, and relevant files if possible.
+      placeholder: |
+        1. Run `praxis ...`
+        2. See error ...
+    validations:
+      required: true
+  - type: textarea
+    id: output
+    attributes:
+      label: Relevant output
+      description: Paste logs, traceback, or CLI output. Remove secrets first.
+      render: shell
+  - type: input
+    id: version
+    attributes:
+      label: Praxis version or commit
+      placeholder: "v0.1.0 or commit SHA"
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - capture / ingest
+        - SkillGraph / graph changes
+        - rollback / deprecate / promote
+        - chunking / embeddings
+        - search / retrieval
+        - watchlists / scans
+        - exports / skills
+        - docs / installation
+        - other
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I removed secrets, API keys, and private data from this report.
+          required: true
