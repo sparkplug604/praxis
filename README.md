@@ -59,7 +59,7 @@ RAG helps an agent find information. Skills help an agent repeat useful behavior
 
 ## What Praxis Does
 
-Praxis is not just RAG. It is the loop around RAG:
+Praxis turns scattered knowledge into searchable memory, traceable evidence, and reusable agent skills.
 
 ```mermaid
 flowchart LR
@@ -74,17 +74,49 @@ flowchart LR
     H --> F
 ```
 
-The Praxis core is the Python package and CLI. It owns the work that turns sources into traceable, searchable, reusable agent knowledge:
+| Step | What It Means |
+| --- | --- |
+| **Sources** | Web pages, papers, docs, local files, project notes, directories, watchlist hits, and other material you want agents to learn from. |
+| **Archive** | Praxis stores source text, summaries, metadata, source IDs, capture IDs, and hashes so knowledge keeps a paper trail. |
+| **Semantic Index** | Captured material is split into searchable chunks and embedded for retrieval. Praxis supports local-hash embeddings by default and optional OpenAI embeddings. |
+| **SkillGraph** | Sources, concepts, practices, risks, and relationships are mapped into graph memory that can be inspected, promoted, deprecated, or rolled back. |
+| **Hybrid Retrieval** | Praxis combines semantic search, keyword search, and SkillGraph context, then can explain why a result matched. |
+| **Agent Work** | Agents use retrieved knowledge, graph context, and exported references during real tasks instead of relying only on one chat window. |
+| **Lessons / Evals** | Useful discoveries, repeated patterns, retrieval checks, and workflow lessons can be captured back into Praxis. |
+| **Skills** | Selected knowledge can become `SKILL.md`-style references, playbooks, or workflows that agents load when relevant. |
 
-- `capture` and `ingest` bring in web sources, local files, directories, papers, notes, and selected watchlist hits.
-- `propose`, `apply`, `changes`, `promote`, `deprecate`, and `rollback` manage SkillGraph updates through audited change sets.
-- `chunk` and `embed` turn captured material into semantic documents, searchable chunks, and embeddings.
-- `search`, `semantic-search`, `graph`, and `library` retrieve knowledge through semantic search, keyword search, graph traversal, and relational lookup.
-- `scan`, `capture-hit`, and `refresh` help discover and refresh trusted sources over time.
-- `export-graph` and `export-skill-refs` turn stored graph and database knowledge into reusable Markdown references and skill-supporting files.
-- `doctor`, `eval`, and `check-embeddings` verify that the local knowledge layer is initialized, searchable, and ready to use.
+## How Knowledge Moves Through Praxis
 
-Those commands write to a local workspace: `research/` for captures and proposals, `vectors/` for chunks and embeddings, `kg/` for the SkillGraph, `db/` for relational records, `watchlists/` for discovery targets, `skills/` for generated references, and `adapters/` for runtime integration notes.
+Praxis is built around a fast, reversible ingestion path.
+
+A source can be captured, written into provisional SkillGraph memory, inspected, promoted or deprecated, indexed for retrieval, and searched with explanations. New knowledge can move quickly, but it keeps provenance, audit logs, and rollback attached.
+
+```bash
+praxis ingest "https://example.com/source"
+
+praxis changes list
+praxis changes show "chg:..."
+
+praxis promote "chg:..."
+praxis deprecate "chg:..."
+praxis rollback "chg:..."
+
+praxis chunk --changed-only
+praxis embed --provider local-hash
+praxis search "what did this source teach us?" --explain
+```
+
+A source moves through Praxis like this:
+
+```mermaid
+flowchart LR
+    A["Capture source"] --> B["Create provisional graph memory"]
+    B --> C["Record audit log"]
+    C --> D["Inspect / promote / deprecate / rollback"]
+    D --> E["Chunk and embed"]
+    E --> F["Search with explanations"]
+    F --> G["Export reusable references or skills"]
+```
 
 ## Trust, Traceability, And Rollback
 
@@ -129,38 +161,19 @@ PYTHONPATH=src python3 -m praxis search "knowledge to skill loop"
 
 For the full CLI reference, see [docs/cli.md](docs/cli.md). For adapter and architecture notes, see [docs/architecture.md](docs/architecture.md).
 
-## How Knowledge Moves Through Praxis
+## Praxis CLI
 
-Praxis is built around a fast, reversible ingestion loop.
+The Praxis core is the Python package and CLI. These commands do the actual work of turning sources into traceable, searchable, reusable agent knowledge:
 
-A source can be captured, written into provisional SkillGraph memory, inspected, promoted or deprecated, indexed for retrieval, and searched with explanations. New knowledge can move quickly, but it keeps provenance, audit logs, and rollback attached.
+- `capture` and `ingest` bring in web sources, local files, directories, papers, notes, and selected watchlist hits.
+- `propose`, `apply`, `changes`, `promote`, `deprecate`, and `rollback` manage SkillGraph updates through audited change sets.
+- `chunk` and `embed` turn captured material into semantic documents, searchable chunks, and embeddings.
+- `search`, `semantic-search`, `graph`, and `library` retrieve knowledge through semantic search, keyword search, graph traversal, and relational lookup.
+- `scan`, `capture-hit`, and `refresh` help discover and refresh trusted sources over time.
+- `export-graph` and `export-skill-refs` turn stored graph and database knowledge into reusable Markdown references and skill-supporting files.
+- `doctor`, `eval`, and `check-embeddings` verify that the local knowledge layer is initialized, searchable, and ready to use.
 
-```bash
-praxis ingest "https://example.com/source"
-
-praxis changes list
-praxis changes show "chg:..."
-
-praxis promote "chg:..."
-praxis deprecate "chg:..."
-praxis rollback "chg:..."
-
-praxis chunk --changed-only
-praxis embed --provider local-hash
-praxis search "what did this source teach us?" --explain
-```
-
-A source moves through Praxis like this:
-
-```mermaid
-flowchart LR
-    A["Capture source"] --> B["Create provisional graph memory"]
-    B --> C["Record audit log"]
-    C --> D["Inspect / promote / deprecate / rollback"]
-    D --> E["Chunk and embed"]
-    E --> F["Search with explanations"]
-    F --> G["Export reusable references or skills"]
-```
+Those commands write to a local workspace: `research/` for captures and proposals, `vectors/` for chunks and embeddings, `kg/` for the SkillGraph, `db/` for relational records, `watchlists/` for discovery targets, `skills/` for generated references, and `adapters/` for runtime integration notes.
 
 ## What Praxis Does Not Do (Yet)
 
