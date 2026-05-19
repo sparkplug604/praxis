@@ -136,12 +136,26 @@ cd praxis
 python3 -m pip install -e .
 ```
 
+On Windows PowerShell, use:
+
+```powershell
+git clone https://github.com/sparkplug604/praxis.git
+cd praxis
+py -m pip install -e .
+```
+
 Initialize the local databases and run a health check:
 
 ```bash
 praxis bootstrap
 praxis doctor --require-index
 praxis eval
+```
+
+Ingest your first source:
+
+```bash
+praxis ingest "https://example.com/source"
 ```
 
 Try a search:
@@ -151,12 +165,31 @@ praxis search "knowledge to skill loop"
 praxis graph search "SkillGraph"
 ```
 
+If `praxis` is not recognized after installation, the Python Scripts directory is probably not on your PATH. Use the module form instead:
+
+```powershell
+py -m praxis bootstrap
+py -m praxis doctor --require-index
+py -m praxis ingest "https://example.com/source"
+```
+
+`ingest` is a Praxis subcommand, so run it as `praxis ingest ...` or `py -m praxis ingest ...`, not as a standalone `ingest` command.
+
 If you prefer not to install, run the CLI from the checkout:
 
 ```bash
 PYTHONPATH=src python3 -m praxis bootstrap
 PYTHONPATH=src python3 -m praxis doctor --require-index
 PYTHONPATH=src python3 -m praxis search "knowledge to skill loop"
+```
+
+PowerShell equivalent:
+
+```powershell
+$env:PYTHONPATH = "src"
+py -m praxis bootstrap
+py -m praxis doctor --require-index
+py -m praxis search "knowledge to skill loop"
 ```
 
 For the full CLI reference, see [docs/cli.md](docs/cli.md). For adapter and architecture notes, see [docs/architecture.md](docs/architecture.md).

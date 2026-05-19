@@ -7,9 +7,25 @@ praxis --help
 praxis <command> --help
 ```
 
+If the `praxis` command is not on PATH, use Python's module form:
+
+```bash
+python3 -m praxis --help
+python3 -m praxis <command> --help
+```
+
+On Windows PowerShell:
+
+```powershell
+py -m praxis --help
+py -m praxis <command> --help
+```
+
 Praxis is currently checkout/workspace-oriented. The CLI expects a Praxis root containing `scripts/`, `db/`, `kg/`, `research/`, and `vectors/`.
 
 If you run the CLI outside the checkout, pass `--root /path/to/Praxis` or set `PRAXIS_ROOT`.
+
+Important: `ingest`, `search`, `graph`, and other actions are Praxis subcommands. Run `praxis ingest "https://example.com/source"` or `py -m praxis ingest "https://example.com/source"`, not `ingest "https://example.com/source"` by itself.
 
 ## Common Commands
 
@@ -33,6 +49,12 @@ Capture a source and auto-apply provisional graph memory:
 
 ```bash
 praxis ingest "https://example.com/source"
+```
+
+Windows/PATH-safe form:
+
+```powershell
+py -m praxis ingest "https://example.com/source"
 ```
 
 Inspect or rollback graph changes:
