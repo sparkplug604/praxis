@@ -96,6 +96,16 @@ def change_set_from(output: str) -> str:
 
 
 class ReleaseHardeningTests(unittest.TestCase):
+    def test_ingest_initializes_missing_skill_graph(self) -> None:
+        with tempfile.TemporaryDirectory() as tempdir:
+            root = make_root(tempdir)
+            source = write_source(root)
+
+            ingest = run_praxis(root, "ingest", str(source), "--source-type", "docs", "--risk-level", "low")
+
+            self.assertIn("Ingested Semantic Contract Test Source", ingest.stdout)
+            self.assertIn("change_set_id:", ingest.stdout)
+
     def test_ingest_promote_deprecate_and_visibility(self) -> None:
         with tempfile.TemporaryDirectory() as tempdir:
             root = make_root(tempdir)

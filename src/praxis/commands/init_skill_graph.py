@@ -318,13 +318,24 @@ def print_counts(connection: sqlite3.Connection) -> None:
         print(f"{table}: {row['count']}")
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--root", default=str(DEFAULT_ROOT), help="Praxis root")
-    parser.add_argument("--no-import-library-db", action="store_true", help="Skip importing the relational Praxis DB")
-    args = parser.parse_args()
+def has_skill_graph_schema(db_path: Path) -> bool:
+    if not db_path.exists():
+        return False
+    try:
+        with connect(db_path) as connection:
+            row = connection.execute(
+                """
+                SELECT 1
+                FROM sqlite_master
+                WHERE type = 'table' AND name = 'source_registry'
+                """
+            ).fetchone()
+            return row is not None
+    except sqlite3.DatabaseError:
+        return False
 
-    root = Path(args.root)
+
+def initialize_skill_graph(root: Path, *, no_import_library_db: bool = False, quiet: bool = False) -> Path:
     kg_dir = root / "kg"
     schema_path = kg_dir / "schema.sql"
     seed_path = kg_dir / "seed_graph.json"
@@ -341,10 +352,29 @@ def main() -> int:
             upsert_node(connection, node)
         for edge in seed.get("edges", []):
             upsert_edge(connection, edge)
-        if not args.no_import_library_db:
+        if not no_import_library_db:
             import_relational_library(connection, library_db)
-        print(f"Initialized {db_path}")
-        print_counts(connection)
+        if not quiet:
+            print(f"Initialized {db_path}")
+            print_counts(connection)
+    return db_path
+
+
+def ensure_skill_graph_initialized(root: Path, *, quiet: bool = True) -> Path:
+    db_path = root / "kg" / "skill_graph.sqlite"
+    if has_skill_graph_schema(db_path):
+        return db_path
+    return initialize_skill_graph(root, quiet=quiet)
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--root", default=str(DEFAULT_ROOT), help="Praxis root")
+    parser.add_argument("--no-import-library-db", action="store_true", help="Skip importing the relational Praxis DB")
+    args = parser.parse_args()
+
+    root = Path(args.root)
+    initialize_skill_graph(root, no_import_library_db=args.no_import_library_db)
     return 0
 
 

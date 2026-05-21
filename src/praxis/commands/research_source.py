@@ -21,6 +21,7 @@ from research_common import (
     utc_now,
     write_json,
 )
+from init_skill_graph import ensure_skill_graph_initialized
 
 
 def capture_source(
@@ -87,6 +88,7 @@ def capture_source(
     }
     write_json(metadata_path, metadata_record)
 
+    ensure_skill_graph_initialized(root, quiet=True)
     with connect(db_path) as connection:
         register_source(
             connection,
