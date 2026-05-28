@@ -203,8 +203,15 @@ def insert_conflict(
         f"{item['object_type']}:{item['object_id']}:{item.get('role', '')}"
         for item in sorted(items, key=lambda item: (item["object_type"], item["object_id"], item.get("role", "")))
     ]
-    conflict_id = stable_id(f"conflict:{conflict_type}", item_key)
     now = utc_now()
+    base_conflict_id = stable_id(f"conflict:{conflict_type}", item_key)
+    metadata_payload = dict(metadata or {})
+    existing = connection.execute("SELECT status FROM conflict_records WHERE id = ?", (base_conflict_id,)).fetchone()
+    if existing and existing["status"] not in UNRESOLVED_STATUSES:
+        metadata_payload.setdefault("previous_conflict_id", base_conflict_id)
+        conflict_id = stable_id(f"conflict:{conflict_type}", [*item_key, "recurrence", now])
+    else:
+        conflict_id = base_conflict_id
     connection.execute(
         """
         INSERT INTO conflict_records(
@@ -217,15 +224,18 @@ def insert_conflict(
           metadata_json=excluded.metadata_json
         WHERE conflict_records.status IN ('open', 'acknowledged')
         """,
-        (conflict_id, conflict_type, severity, summary, now, json.dumps(metadata or {}, sort_keys=True)),
+        (conflict_id, conflict_type, severity, summary, now, json.dumps(metadata_payload, sort_keys=True)),
     )
     for item in items:
         connection.execute(
             """
-            INSERT OR IGNORE INTO conflict_items(
+            INSERT INTO conflict_items(
               conflict_id, object_type, object_id, role, evidence_id, rationale_json
             )
             VALUES (?, ?, ?, ?, ?, ?)
+            ON CONFLICT(conflict_id, object_type, object_id, role) DO UPDATE SET
+              evidence_id=excluded.evidence_id,
+              rationale_json=excluded.rationale_json
             """,
             (
                 conflict_id,
@@ -323,6 +333,7 @@ def live_nodes(connection: sqlite3.Connection, node_type: str, exclude_id: str) 
 def scan_entity_dedupe(connection: sqlite3.Connection, node_ids: Iterable[str]) -> list[str]:
     ensure_conflict_schema(connection)
     conflicts: list[str] = []
+    seen_pairs: set[tuple[str, str, str]] = set()
     for node_id in sorted(set(node_ids)):
         node = connection.execute("SELECT * FROM nodes WHERE id = ?", (node_id,)).fetchone()
         if not node or node["status"] not in LIVE_STATUSES:
@@ -337,6 +348,10 @@ def scan_entity_dedupe(connection: sqlite3.Connection, node_ids: Iterable[str]) 
             same_key = node_name and node_name == other_name
             if not (alias_overlap or same_key or name_similarity >= 0.90):
                 continue
+            pair_key = (node["type"], *sorted([node_id, other["id"]]))
+            if pair_key in seen_pairs:
+                continue
+            seen_pairs.add(pair_key)
             conflicts.append(
                 insert_conflict(
                     connection,
@@ -433,6 +448,7 @@ def scan_claim_conflicts(connection: sqlite3.Connection, node_ids: Iterable[str]
     refresh_claim_records(connection)
     conflicts: list[str] = []
     claim_rows = []
+    seen_pairs: set[tuple[str, str]] = set()
     for node_id in sorted(set(node_ids)):
         claim_rows.extend(connection.execute("SELECT * FROM claim_records WHERE node_id = ?", (node_id,)).fetchall())
     for claim in claim_rows:
@@ -450,6 +466,10 @@ def scan_claim_conflicts(connection: sqlite3.Connection, node_ids: Iterable[str]
             """,
             (claim["node_id"], claim["subject_key"], opposite),
         ):
+            pair_key = tuple(sorted([claim["id"], other["id"]]))
+            if pair_key in seen_pairs:
+                continue
+            seen_pairs.add(pair_key)
             conflicts.append(
                 insert_conflict(
                     connection,

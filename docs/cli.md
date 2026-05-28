@@ -42,8 +42,11 @@ Search the corpus and SkillGraph:
 ```bash
 praxis search "knowledge to skill loop"
 praxis search "knowledge to skill loop" --explain
+praxis search "knowledge to skill loop" --rank-by relevance
 praxis graph search "SkillGraph"
 ```
+
+`praxis search` ranks by unified context priority by default. The priority score keeps retrieval relevance visible, then adjusts for source trust, freshness, graph fit, live/deprecated status, and unresolved conflicts. Use `--rank-by relevance` when you want the raw retrieval order without those governance signals.
 
 Capture a source and auto-apply provisional graph memory:
 

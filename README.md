@@ -16,7 +16,7 @@ Praxis gives agents a way to build on what they learn without dragging a giant c
 
 - **Turn any useful source into agent knowledge**: capture links, files, papers, docs, notes, directories, and selected watchlist hits with source metadata preserved.
 - **Make agent memory traceable by default**: store raw text, summaries, chunks, hashes, source IDs, confidence, graph links, and audit logs in local SQLite databases.
-- **Find the right context and see why it matched**: combine semantic search, keyword search, and SkillGraph context, with `--explain` output showing scores, sources, confidence, and graph hints.
+- **Rank the best context first**: search with semantic matching, keyword matching, SkillGraph links, and priority scoring. `--explain` shows why each result appeared, including source trust, freshness, graph links, status, conflicts, and raw relevance.
 - **Move fast without poisoning memory**: ingest captured sources into provisional SkillGraph memory, then inspect, promote, deprecate, or roll back changes through audited change sets.
 - **Catch duplicate or conflicting knowledge early**: log duplicate sources, duplicate content, possible duplicate entities, and likely claim contradictions in a Conflict Ledger.
 - **Turn knowledge into reusable agent instructions**: export selected database and SkillGraph material into Markdown references and `SKILL.md`-style supporting files for agent runtimes.
@@ -81,7 +81,7 @@ flowchart LR
 | **Archive** | Praxis stores source text, summaries, metadata, source IDs, capture IDs, and hashes so knowledge keeps a paper trail. |
 | **Semantic Index** | Captured material is split into searchable chunks and embedded for retrieval. Praxis supports local-hash embeddings by default and optional OpenAI embeddings. |
 | **SkillGraph** | Sources, concepts, practices, risks, claims, conflicts, and relationships are mapped into graph memory that can be inspected, promoted, deprecated, merged, resolved, or rolled back. |
-| **Hybrid Retrieval** | Praxis combines semantic search, keyword search, and SkillGraph context, then can explain why a result matched. |
+| **Hybrid Retrieval** | Praxis searches across semantic chunks, keywords, and SkillGraph links. It also gives each result a priority score so fresher, more trusted, less conflicted knowledge can rank higher. Raw relevance is still shown, so the score does not become a black box. |
 | **Agent Work** | Agents use retrieved knowledge, graph context, and exported references during real tasks instead of relying only on one chat window. |
 | **Lessons / Evals** | Useful discoveries, repeated patterns, retrieval checks, and workflow lessons can be captured back into Praxis. |
 | **Skills** | Selected knowledge can become `SKILL.md`-style references, playbooks, or workflows that agents load when relevant. |
@@ -107,6 +107,7 @@ praxis dedupe list
 praxis chunk --changed-only
 praxis embed --provider local-hash
 praxis search "what did this source teach us?" --explain
+praxis search "what did this source teach us?" --rank-by relevance
 ```
 
 A source moves through Praxis like this:
@@ -128,6 +129,8 @@ Praxis treats memory as evidence, not truth.
 Captured material is stored with source context so claims can be checked later. SkillGraph updates are provisional by default. Every graph mutation is logged as a change set with before/after records, and reverted, merged, or deprecated graph objects are hidden from normal search/export unless you explicitly inspect them.
 
 Praxis also keeps a Conflict Ledger. Ingest and promotion can log duplicate sources, duplicate content, possible duplicate entities, and likely claim contradictions. Search can show conflict warnings with `--explain`, exports can refuse unresolved conflicts with `--fail-on-open-conflicts`, and dedupe merges are reversible through audited change sets.
+
+Praxis uses source and conflict signals during search. By default, `praxis search` ranks results with a priority score. That score starts with relevance, then adjusts for things like source trust, freshness, graph links, whether the knowledge is still active, and whether there are unresolved conflicts. If you only want the raw retrieval order, use `--rank-by relevance`.
 
 Praxis is built to let agents move quickly without turning memory into an untraceable junk drawer.
 

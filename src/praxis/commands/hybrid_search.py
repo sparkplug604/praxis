@@ -8,6 +8,8 @@ import json
 import sqlite3
 from pathlib import Path
 
+from praxis.context_priority import score_context_priority
+
 from conflict_ledger import open_conflicts_for_objects
 from graph_audit import LIVE_STATUSES
 from semantic_search import default_dimensions, keyword_hits, vector_hits
@@ -130,24 +132,108 @@ def combine_hits(vector_results: list[dict], keyword_results: list[dict], nodes:
 
     for entry in combined.values():
         entry["graph"] = graph_score(entry["row"], nodes)
-        entry["score"] = (
+        entry["relevance"] = (
             weights["vector"] * entry["vector"]
             + weights["keyword"] * entry["keyword"]
             + weights["graph"] * entry["graph"]
         )
+        entry["score"] = entry["relevance"]
+        entry["priority"] = entry["relevance"]
 
-    return sorted(combined.values(), key=lambda item: item["score"], reverse=True)
+    return sorted(combined.values(), key=lambda item: item["relevance"], reverse=True)
+
+
+def conflict_refs_for_result(row: sqlite3.Row, nodes: list[sqlite3.Row]) -> list[tuple[str, str]]:
+    refs: list[tuple[str, str]] = []
+    if row["source_id"]:
+        refs.append(("source", row["source_id"]))
+    if row["capture_id"]:
+        refs.append(("capture", row["capture_id"]))
+    refs.extend(("node", node_id) for node_id in chunk_graph_links(row))
+    refs.extend(("node", node["id"]) for node in nodes[:8])
+    return refs
+
+
+def source_context_for_result(connection: sqlite3.Connection, row: sqlite3.Row) -> sqlite3.Row | None:
+    if not row["source_id"]:
+        return None
+    return connection.execute(
+        """
+        SELECT *
+        FROM source_registry
+        WHERE id = ?
+        """,
+        (row["source_id"],),
+    ).fetchone()
+
+
+def annotate_context_priority(
+    results: list[dict],
+    nodes: list[sqlite3.Row],
+    *,
+    kg_db: Path,
+    rank_by: str,
+) -> list[dict]:
+    if kg_db.exists():
+        try:
+            with sqlite3.connect(kg_db) as connection:
+                connection.row_factory = sqlite3.Row
+                for item in results:
+                    row = item["row"]
+                    refs = conflict_refs_for_result(row, nodes)
+                    conflicts = open_conflicts_for_objects(connection, refs)
+                    source = source_context_for_result(connection, row)
+                    breakdown = score_context_priority(
+                        relevance=float(item["relevance"]),
+                        row=row,
+                        source=source,
+                        graph=float(item["graph"]),
+                        conflicts=conflicts,
+                    )
+                    item["priority"] = breakdown.priority
+                    item["priority_breakdown"] = breakdown.to_dict()
+                    item["conflicts"] = conflicts
+        except sqlite3.Error:
+            pass
+
+    for item in results:
+        if "priority_breakdown" not in item:
+            breakdown = score_context_priority(
+                relevance=float(item["relevance"]),
+                row=item["row"],
+                graph=float(item["graph"]),
+                conflicts=[],
+            )
+            item["priority"] = breakdown.priority
+            item["priority_breakdown"] = breakdown.to_dict()
+            item["conflicts"] = []
+        item["score"] = item["priority"] if rank_by == "priority" else item["relevance"]
+
+    return sorted(results, key=lambda item: item["score"], reverse=True)
 
 
 def print_explanation(item: dict, nodes: list[sqlite3.Row]) -> None:
     row = item["row"]
     print(
         "   explain: "
-        f"score={item['score']:.3f}; "
+        f"priority={item['priority']:.3f}; "
+        f"relevance={item['relevance']:.3f}; "
         f"vector={item['vector']:.3f}; "
         f"keyword={item['keyword']:.3f}; "
         f"graph={item['graph']:.3f}"
     )
+    breakdown = item.get("priority_breakdown") or {}
+    if breakdown:
+        print(
+            "   priority_breakdown: "
+            f"trust={breakdown.get('trust', 0.0):.3f}; "
+            f"freshness={breakdown.get('freshness', 0.0):.3f}; "
+            f"status={breakdown.get('status', 0.0):.3f}; "
+            f"conflict_penalty={breakdown.get('conflict_penalty', 0.0):.3f}"
+        )
+        reasons = breakdown.get("reasons") or []
+        if reasons:
+            print(f"   priority_reasons: {'; '.join(str(reason) for reason in reasons)}")
     if row["source_id"]:
         print(f"   source_id: {row['source_id']}")
     if row["capture_id"]:
@@ -165,13 +251,7 @@ def print_explanation(item: dict, nodes: list[sqlite3.Row]) -> None:
 def conflict_warnings_for_result(kg_db: Path, row: sqlite3.Row, nodes: list[sqlite3.Row]) -> list[sqlite3.Row]:
     if not kg_db.exists():
         return []
-    refs: list[tuple[str, str]] = []
-    if row["source_id"]:
-        refs.append(("source", row["source_id"]))
-    if row["capture_id"]:
-        refs.append(("capture", row["capture_id"]))
-    refs.extend(("node", node_id) for node_id in chunk_graph_links(row))
-    refs.extend(("node", node["id"]) for node in nodes[:8])
+    refs = conflict_refs_for_result(row, nodes)
     try:
         with sqlite3.connect(kg_db) as connection:
             connection.row_factory = sqlite3.Row
@@ -187,9 +267,13 @@ def result_log_payload(item: dict) -> dict:
         "source_id": row["source_id"],
         "capture_id": row["capture_id"],
         "score": round(float(item["score"]), 6),
+        "priority": round(float(item["priority"]), 6),
+        "relevance": round(float(item["relevance"]), 6),
         "vector": round(float(item["vector"]), 6),
         "keyword": round(float(item["keyword"]), 6),
         "graph": round(float(item["graph"]), 6),
+        "conflict_count": len(item.get("conflicts", [])),
+        "priority_breakdown": item.get("priority_breakdown", {}),
         "graph_links": chunk_graph_links(row),
     }
 
@@ -217,7 +301,7 @@ def print_results(
     for idx, item in enumerate(results[:limit], 1):
         row = item["row"]
         print(
-            f"{idx}. [{item['score']:.3f}] {row['title']} "
+            f"{idx}. [p={item['priority']:.3f} r={item['relevance']:.3f}] {row['title']} "
             f"(v={item['vector']:.2f}, k={item['keyword']:.2f}, g={item['graph']:.2f})"
         )
         print(f"   chunk_id: {row['id']}")
@@ -228,7 +312,7 @@ def print_results(
             print(f"   url: {row['url']}")
         if explain:
             print_explanation(item, nodes)
-            conflicts = conflict_warnings_for_result(kg_db, row, nodes)
+            conflicts = item.get("conflicts") or conflict_warnings_for_result(kg_db, row, nodes)
             if conflicts:
                 print("   conflict_warnings:")
                 for conflict in conflicts:
@@ -292,6 +376,12 @@ def main() -> int:
     parser.add_argument("--vector-weight", type=float, default=0.45)
     parser.add_argument("--keyword-weight", type=float, default=0.45)
     parser.add_argument("--graph-weight", type=float, default=0.10)
+    parser.add_argument(
+        "--rank-by",
+        choices=["priority", "relevance"],
+        default="priority",
+        help="Sort by unified context priority or raw retrieval relevance.",
+    )
     parser.add_argument("--show-text", action="store_true")
     parser.add_argument("--explain", action="store_true", help="Print score components, source ids, and graph hints for each result.")
     parser.add_argument("--text-chars", type=int, default=900, help="Characters of each hit to print with --show-text.")
@@ -318,6 +408,7 @@ def main() -> int:
             nodes,
             weights,
         )
+        results = annotate_context_priority(results, nodes, kg_db=Path(args.kg_db), rank_by=args.rank_by)
         log_retrieval(connection, args.query, identifier, results, nodes, weights)
 
     print_results(

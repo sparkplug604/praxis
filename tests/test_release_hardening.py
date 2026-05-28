@@ -9,10 +9,14 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from datetime import datetime, timezone
 from pathlib import Path
 
 
 REPO = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(REPO / "src"))
+
+from praxis.context_priority import score_context_priority
 
 
 def copy_fixture(source: str, root: Path) -> None:
@@ -105,6 +109,36 @@ def conflict_from(output: str, conflict_type: str) -> str:
 
 
 class ReleaseHardeningTests(unittest.TestCase):
+    def test_context_priority_penalizes_stale_or_conflicted_context(self) -> None:
+        row = {"confidence": "high", "status": "active"}
+        fresh_source = {
+            "credibility_score": 4,
+            "status": "active",
+            "last_checked_at": datetime.now(timezone.utc).isoformat(),
+            "freshness_window_days": 30,
+        }
+        stale_source = {
+            "credibility_score": 4,
+            "status": "active",
+            "last_checked_at": "2024-01-01T00:00:00+00:00",
+            "freshness_window_days": 30,
+        }
+
+        clean = score_context_priority(relevance=0.8, row=row, source=fresh_source, graph=0.3, conflicts=[])
+        stale = score_context_priority(relevance=0.8, row=row, source=stale_source, graph=0.3, conflicts=[])
+        conflicted = score_context_priority(
+            relevance=0.8,
+            row=row,
+            source=fresh_source,
+            graph=0.3,
+            conflicts=[{"severity": "high", "status": "open"}],
+        )
+
+        self.assertGreater(clean.priority, stale.priority)
+        self.assertGreater(clean.priority, conflicted.priority)
+        self.assertGreater(conflicted.conflict_penalty, 0.0)
+        self.assertTrue(any("freshness:stale" in reason for reason in stale.reasons))
+
     def test_ingest_initializes_missing_skill_graph(self) -> None:
         with tempfile.TemporaryDirectory() as tempdir:
             root = make_root(tempdir)
@@ -172,6 +206,8 @@ class ReleaseHardeningTests(unittest.TestCase):
 
             result = run_praxis(root, "search", "task semantic contract", "--limit", "3", "--explain")
             self.assertIn("explain:", result.stdout)
+            self.assertIn("priority_breakdown:", result.stdout)
+            self.assertIn("priority_reasons:", result.stdout)
             self.assertIn("source_id:", result.stdout)
             self.assertIn("graph_hints_used:", result.stdout)
 
@@ -182,6 +218,7 @@ class ReleaseHardeningTests(unittest.TestCase):
 
             run_praxis(root, "ingest", str(source), "--source-id", "src:duplicate-a", "--title", "Duplicate A", "--source-type", "docs", "--risk-level", "low")
             second = run_praxis(root, "ingest", str(source), "--source-id", "src:duplicate-b", "--title", "Duplicate B", "--source-type", "docs", "--risk-level", "low")
+            second_change_set = change_set_from(second.stdout)
             self.assertIn("conflict_warnings:", second.stdout)
 
             listed = run_praxis(root, "conflicts", "list", "--type", "duplicate_content")
@@ -193,6 +230,7 @@ class ReleaseHardeningTests(unittest.TestCase):
             run_praxis(root, "embed", "--provider", "local-hash")
             search = run_praxis(root, "search", "semantic contract", "--limit", "2", "--explain")
             self.assertIn("conflict_warnings:", search.stdout)
+            self.assertIn("conflict_penalty=", search.stdout)
 
             refused_export = run_praxis(root, "export-graph", "--fail-on-open-conflicts", check=False)
             self.assertEqual(2, refused_export.returncode, refused_export.stdout)
@@ -202,6 +240,12 @@ class ReleaseHardeningTests(unittest.TestCase):
             self.assertIn("status: resolved", resolved.stdout)
             open_list = run_praxis(root, "conflicts", "list", "--type", "duplicate_content")
             self.assertIn("No conflicts found.", open_list.stdout)
+            rescanned = run_praxis(root, "conflicts", "scan", second_change_set)
+            self.assertIn("Conflicts found:", rescanned.stdout)
+            reopened = run_praxis(root, "conflicts", "list", "--type", "duplicate_content")
+            reopened_conflict = conflict_from(reopened.stdout, "duplicate_content")
+            reopened_shown = run_praxis(root, "conflicts", "show", reopened_conflict)
+            self.assertIn("previous_conflict_id", reopened_shown.stdout)
 
     def test_claim_contradiction_is_logged(self) -> None:
         with tempfile.TemporaryDirectory() as tempdir:
