@@ -21,6 +21,7 @@ from research_common import (
     utc_now,
     write_json,
 )
+from conflict_ledger import scan_source_dedupe
 from init_skill_graph import ensure_skill_graph_initialized
 
 
@@ -111,12 +112,14 @@ def capture_source(
             summary_path=str(summary_path),
             metadata={"metadata_path": str(metadata_path), **metadata},
         )
+        conflict_ids = scan_source_dedupe(connection, source_id=resolved_source_id, capture_id=capture_id)
 
     return {
         **metadata_record,
         "raw_path": raw_path,
         "summary_path": summary_path,
         "metadata_path": metadata_path,
+        "conflict_ids": conflict_ids,
     }
 
 
@@ -146,6 +149,10 @@ def main() -> int:
     print(f"capture_id: {capture['capture_id']}")
     print(f"raw: {capture['raw_path']}")
     print(f"summary: {capture['summary_path']}")
+    if capture.get("conflict_ids"):
+        print("conflict_warnings:")
+        for conflict_id in capture["conflict_ids"]:
+            print(f"- {conflict_id}")
     print()
     print("Next:")
     print(f"  python3.12 \"{root / 'scripts' / 'propose_graph_update.py'}\" {capture['capture_id']}")

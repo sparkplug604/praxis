@@ -68,11 +68,32 @@ praxis rollback "chg:..."
 praxis rollback "chg:..." --force
 ```
 
+Inspect and resolve conflict/dedupe records:
+
+```bash
+praxis conflicts list
+praxis conflicts show "conflict:..."
+praxis conflicts resolve "conflict:..." --resolution "keep_both_with_scope" --notes "Different scopes."
+praxis dedupe list
+praxis dedupe show "conflict:duplicate_entity:..."
+praxis dedupe merge "conflict:duplicate_entity:..." --canonical "node:id"
+praxis dedupe split "chg:..."
+```
+
 Refresh retrieval indexes:
 
 ```bash
 praxis chunk --changed-only
 praxis embed --provider local-hash
+```
+
+Export with conflict safety:
+
+```bash
+praxis export-graph --include-conflict-notes
+praxis export-graph --fail-on-open-conflicts
+praxis export-skill-refs --fail-on-open-conflicts
+praxis export-skill-refs --include-conflict-notes
 ```
 
 ## Script Wrappers
@@ -83,6 +104,8 @@ The `scripts/` folder contains compatibility wrappers around the packaged CLI. T
 python3 scripts/hybrid_search.py "test-backed refactoring"
 python3 scripts/search_skill_graph.py search "refactoring"
 python3 scripts/ingest_source.py "https://example.com/source"
+python3 scripts/conflicts.py list
+python3 scripts/dedupe.py list
 python3 scripts/graph_changes.py list
 python3 scripts/promote_graph_change.py "chg:..."
 python3 scripts/deprecate_graph_change.py "chg:..."

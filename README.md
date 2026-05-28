@@ -18,6 +18,7 @@ Praxis gives agents a way to build on what they learn without dragging a giant c
 - **Make agent memory traceable by default**: store raw text, summaries, chunks, hashes, source IDs, confidence, graph links, and audit logs in local SQLite databases.
 - **Find the right context and see why it matched**: combine semantic search, keyword search, and SkillGraph context, with `--explain` output showing scores, sources, confidence, and graph hints.
 - **Move fast without poisoning memory**: ingest captured sources into provisional SkillGraph memory, then inspect, promote, deprecate, or roll back changes through audited change sets.
+- **Catch duplicate or conflicting knowledge early**: log duplicate sources, duplicate content, possible duplicate entities, and likely claim contradictions in a Conflict Ledger.
 - **Turn knowledge into reusable agent instructions**: export selected database and SkillGraph material into Markdown references and `SKILL.md`-style supporting files for agent runtimes.
 - **Keep agent knowledge fresh from trusted sources**: define watchlists for any topic, scan trusted research and web sources, rank hits, and capture the useful ones into the same evidence pipeline.
 - **Own the knowledge layer**: run with SQLite, scripts, local-hash embeddings, and optional OpenAI embeddings from a normal checkout, without locking into one hosted service, model, or agent runtime.
@@ -79,7 +80,7 @@ flowchart LR
 | **Sources** | Web pages, papers, docs, local files, project notes, directories, watchlist hits, and other material you want agents to learn from. |
 | **Archive** | Praxis stores source text, summaries, metadata, source IDs, capture IDs, and hashes so knowledge keeps a paper trail. |
 | **Semantic Index** | Captured material is split into searchable chunks and embedded for retrieval. Praxis supports local-hash embeddings by default and optional OpenAI embeddings. |
-| **SkillGraph** | Sources, concepts, practices, risks, and relationships are mapped into graph memory that can be inspected, promoted, deprecated, or rolled back. |
+| **SkillGraph** | Sources, concepts, practices, risks, claims, conflicts, and relationships are mapped into graph memory that can be inspected, promoted, deprecated, merged, resolved, or rolled back. |
 | **Hybrid Retrieval** | Praxis combines semantic search, keyword search, and SkillGraph context, then can explain why a result matched. |
 | **Agent Work** | Agents use retrieved knowledge, graph context, and exported references during real tasks instead of relying only on one chat window. |
 | **Lessons / Evals** | Useful discoveries, repeated patterns, retrieval checks, and workflow lessons can be captured back into Praxis. |
@@ -96,10 +97,12 @@ praxis ingest "https://example.com/source"
 
 praxis changes list
 praxis changes show "chg:..."
+praxis conflicts list
 
 praxis promote "chg:..."
 praxis deprecate "chg:..."
 praxis rollback "chg:..."
+praxis dedupe list
 
 praxis chunk --changed-only
 praxis embed --provider local-hash
@@ -122,7 +125,9 @@ flowchart LR
 
 Praxis treats memory as evidence, not truth.
 
-Captured material is stored with source context so claims can be checked later. SkillGraph updates are provisional by default. Every graph mutation is logged as a change set with before/after records, and reverted or deprecated graph objects are hidden from normal search/export unless you explicitly inspect them.
+Captured material is stored with source context so claims can be checked later. SkillGraph updates are provisional by default. Every graph mutation is logged as a change set with before/after records, and reverted, merged, or deprecated graph objects are hidden from normal search/export unless you explicitly inspect them.
+
+Praxis also keeps a Conflict Ledger. Ingest and promotion can log duplicate sources, duplicate content, possible duplicate entities, and likely claim contradictions. Search can show conflict warnings with `--explain`, exports can refuse unresolved conflicts with `--fail-on-open-conflicts`, and dedupe merges are reversible through audited change sets.
 
 Praxis is built to let agents move quickly without turning memory into an untraceable junk drawer.
 
@@ -200,6 +205,7 @@ The Praxis core is the Python package and CLI. These commands do the actual work
 
 - `capture` and `ingest` bring in web sources, local files, directories, papers, notes, and selected watchlist hits.
 - `propose`, `apply`, `changes`, `promote`, `deprecate`, and `rollback` manage SkillGraph updates through audited change sets.
+- `conflicts` and `dedupe` inspect, resolve, merge, and split duplicate or conflicting knowledge.
 - `chunk` and `embed` turn captured material into semantic documents, searchable chunks, and embeddings.
 - `search`, `semantic-search`, `graph`, and `library` retrieve knowledge through semantic search, keyword search, graph traversal, and relational lookup.
 - `scan`, `capture-hit`, and `refresh` help discover and refresh trusted sources over time.

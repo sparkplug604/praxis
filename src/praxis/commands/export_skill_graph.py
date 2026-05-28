@@ -8,6 +8,7 @@ import re
 import sqlite3
 from pathlib import Path
 
+from conflict_ledger import open_conflict_count, open_conflict_rows
 from graph_audit import LIVE_STATUSES, ensure_audit_schema
 from praxis.paths import default_root
 
@@ -46,7 +47,23 @@ def live_edge_clause(include_inactive: bool) -> str:
     )
 
 
-def export_markdown(connection: sqlite3.Connection, out_path: Path, limit_edges: int, include_inactive: bool) -> None:
+def append_conflict_notes(connection: sqlite3.Connection, lines: list[str]) -> None:
+    rows = open_conflict_rows(connection, limit=20)
+    lines.extend(["", "## Open Conflict Warnings", ""])
+    if not rows:
+        lines.append("No open conflicts.")
+        return
+    for row in rows:
+        lines.append(f"- `{row['id']}` ({row['conflict_type']}, {row['severity']}): {row['summary']}")
+
+
+def export_markdown(
+    connection: sqlite3.Connection,
+    out_path: Path,
+    limit_edges: int,
+    include_inactive: bool,
+    include_conflict_notes: bool,
+) -> None:
     out_path.parent.mkdir(parents=True, exist_ok=True)
     lines: list[str] = ["# SkillGraph Overview", ""]
 
@@ -94,6 +111,9 @@ def export_markdown(connection: sqlite3.Connection, out_path: Path, limit_edges:
             lines.append(f"  {row['summary']}")
         if row["evidence_title"]:
             lines.append(f"  Evidence: {row['evidence_title']}")
+
+    if include_conflict_notes:
+        append_conflict_notes(connection, lines)
 
     out_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
@@ -150,12 +170,27 @@ def main() -> int:
     parser.add_argument("--relation", help="Mermaid only: restrict to one relation")
     parser.add_argument("--limit-edges", type=int, default=80)
     parser.add_argument("--include-inactive", action="store_true", help="Include deprecated/reverted graph objects.")
+    parser.add_argument("--fail-on-open-conflicts", action="store_true", help="Refuse export when unresolved conflicts exist.")
+    parser.add_argument("--include-conflict-notes", action="store_true", help="Include open conflict warnings in Markdown exports.")
     args = parser.parse_args()
 
     with connect(Path(args.db)) as connection:
         ensure_audit_schema(connection)
+        conflict_count = open_conflict_count(connection)
+        if conflict_count and args.fail_on_open_conflicts:
+            print(f"Refusing export because {conflict_count} unresolved conflict(s) exist.")
+            print("Run `praxis conflicts list` to inspect them, or export without --fail-on-open-conflicts.")
+            return 2
+        if conflict_count:
+            print(f"warning: {conflict_count} unresolved conflict(s) exist.")
         if args.format == "markdown":
-            export_markdown(connection, Path(args.out), args.limit_edges, args.include_inactive)
+            export_markdown(
+                connection,
+                Path(args.out),
+                args.limit_edges,
+                args.include_inactive,
+                args.include_conflict_notes,
+            )
         else:
             export_mermaid(connection, Path(args.out), args.relation, args.limit_edges, args.include_inactive)
 

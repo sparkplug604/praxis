@@ -130,6 +130,44 @@ CREATE TABLE IF NOT EXISTS graph_change_items (
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS claim_records (
+  id TEXT PRIMARY KEY,
+  node_id TEXT NOT NULL REFERENCES nodes(id) ON DELETE CASCADE,
+  claim_key TEXT NOT NULL,
+  claim_text TEXT NOT NULL,
+  normalized_text TEXT NOT NULL,
+  subject_key TEXT NOT NULL,
+  polarity TEXT NOT NULL DEFAULT 'neutral',
+  source_ref TEXT NOT NULL DEFAULT '',
+  confidence TEXT NOT NULL DEFAULT 'medium',
+  status TEXT NOT NULL DEFAULT 'active',
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS conflict_records (
+  id TEXT PRIMARY KEY,
+  conflict_type TEXT NOT NULL,
+  severity TEXT NOT NULL DEFAULT 'medium',
+  status TEXT NOT NULL DEFAULT 'open',
+  summary TEXT NOT NULL,
+  detected_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  resolved_at TEXT,
+  resolution TEXT NOT NULL DEFAULT '',
+  resolver_notes TEXT NOT NULL DEFAULT '',
+  metadata_json TEXT NOT NULL DEFAULT '{}'
+);
+
+CREATE TABLE IF NOT EXISTS conflict_items (
+  conflict_id TEXT NOT NULL REFERENCES conflict_records(id) ON DELETE CASCADE,
+  object_type TEXT NOT NULL,
+  object_id TEXT NOT NULL,
+  role TEXT NOT NULL,
+  evidence_id TEXT NOT NULL DEFAULT '',
+  rationale_json TEXT NOT NULL DEFAULT '{}',
+  PRIMARY KEY (conflict_id, object_type, object_id, role)
+);
+
 CREATE TABLE IF NOT EXISTS refresh_queue (
   id TEXT PRIMARY KEY,
   source_id TEXT REFERENCES source_registry(id) ON DELETE CASCADE,
@@ -189,6 +227,11 @@ CREATE INDEX IF NOT EXISTS idx_graph_change_sets_status ON graph_change_sets(sta
 CREATE INDEX IF NOT EXISTS idx_graph_change_sets_capture ON graph_change_sets(capture_id);
 CREATE INDEX IF NOT EXISTS idx_graph_change_items_change_set ON graph_change_items(change_set_id);
 CREATE INDEX IF NOT EXISTS idx_graph_change_items_object ON graph_change_items(object_type, object_id);
+CREATE INDEX IF NOT EXISTS idx_claim_records_node ON claim_records(node_id);
+CREATE INDEX IF NOT EXISTS idx_claim_records_subject ON claim_records(subject_key, polarity, status);
+CREATE INDEX IF NOT EXISTS idx_conflict_records_status ON conflict_records(status);
+CREATE INDEX IF NOT EXISTS idx_conflict_records_type ON conflict_records(conflict_type);
+CREATE INDEX IF NOT EXISTS idx_conflict_items_object ON conflict_items(object_type, object_id);
 CREATE INDEX IF NOT EXISTS idx_refresh_queue_next_check ON refresh_queue(next_check_at);
 CREATE INDEX IF NOT EXISTS idx_watchlist_runs_name ON watchlist_runs(watchlist_name);
 CREATE INDEX IF NOT EXISTS idx_research_hits_run ON research_hits(run_id);

@@ -8,6 +8,7 @@ import json
 import sqlite3
 from pathlib import Path
 
+from conflict_ledger import open_conflicts_for_objects
 from graph_audit import LIVE_STATUSES
 from semantic_search import default_dimensions, keyword_hits, vector_hits
 from vector_common import (
@@ -161,6 +162,24 @@ def print_explanation(item: dict, nodes: list[sqlite3.Row]) -> None:
         print(f"   graph_hints_used: {hints}")
 
 
+def conflict_warnings_for_result(kg_db: Path, row: sqlite3.Row, nodes: list[sqlite3.Row]) -> list[sqlite3.Row]:
+    if not kg_db.exists():
+        return []
+    refs: list[tuple[str, str]] = []
+    if row["source_id"]:
+        refs.append(("source", row["source_id"]))
+    if row["capture_id"]:
+        refs.append(("capture", row["capture_id"]))
+    refs.extend(("node", node_id) for node_id in chunk_graph_links(row))
+    refs.extend(("node", node["id"]) for node in nodes[:8])
+    try:
+        with sqlite3.connect(kg_db) as connection:
+            connection.row_factory = sqlite3.Row
+            return open_conflicts_for_objects(connection, refs)
+    except sqlite3.Error:
+        return []
+
+
 def result_log_payload(item: dict) -> dict:
     row = item["row"]
     return {
@@ -179,6 +198,7 @@ def print_results(
     results: list[dict],
     nodes: list[sqlite3.Row],
     *,
+    kg_db: Path,
     show_text: bool,
     limit: int,
     text_chars: int,
@@ -208,6 +228,16 @@ def print_results(
             print(f"   url: {row['url']}")
         if explain:
             print_explanation(item, nodes)
+            conflicts = conflict_warnings_for_result(kg_db, row, nodes)
+            if conflicts:
+                print("   conflict_warnings:")
+                for conflict in conflicts:
+                    print(
+                        "   - "
+                        f"{conflict['id']} "
+                        f"({conflict['conflict_type']}, {conflict['severity']}, {conflict['status']}): "
+                        f"{conflict['summary']}"
+                    )
         if show_text:
             print(f"   text: {' '.join(row['text'].split())[:text_chars]}")
         print()
@@ -290,7 +320,15 @@ def main() -> int:
         )
         log_retrieval(connection, args.query, identifier, results, nodes, weights)
 
-    print_results(results, nodes, show_text=args.show_text, limit=args.limit, text_chars=args.text_chars, explain=args.explain)
+    print_results(
+        results,
+        nodes,
+        kg_db=Path(args.kg_db),
+        show_text=args.show_text,
+        limit=args.limit,
+        text_chars=args.text_chars,
+        explain=args.explain,
+    )
     return 0
 
 

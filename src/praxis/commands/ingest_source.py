@@ -70,6 +70,10 @@ def main() -> int:
     print(f"capture_id: {capture['capture_id']}")
     print(f"proposal: {proposal_path}")
     print(f"change_set_id: {result['change_set_id']}")
+    if result.get("conflict_ids"):
+        print("conflict_warnings:")
+        for conflict_id in result["conflict_ids"]:
+            print(f"- {conflict_id}")
     print(f"nodes: {result['nodes']}")
     print(f"edges: {result['edges']}")
     print()

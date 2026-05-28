@@ -7,6 +7,7 @@ import argparse
 import sqlite3
 from pathlib import Path
 
+from conflict_ledger import open_conflict_count, open_conflict_rows
 from praxis.paths import default_root
 
 
@@ -216,17 +217,51 @@ def export_architecture_ref(connection: sqlite3.Connection, skill_refs: Path) ->
     write(skill_refs / "agent_architecture.md", "\n".join(lines))
 
 
+def export_conflict_notes(kg_db: Path, skill_refs: Path) -> int:
+    if not kg_db.exists():
+        return 0
+    with sqlite3.connect(kg_db) as connection:
+        connection.row_factory = sqlite3.Row
+        rows = open_conflict_rows(connection, limit=50)
+    if not rows:
+        return 0
+    lines = [
+        "# Open Praxis Conflict Warnings",
+        "",
+        "These records indicate unresolved knowledge conflicts or dedupe candidates in the SkillGraph.",
+        "",
+    ]
+    for row in rows:
+        lines.append(f"- `{row['id']}` ({row['conflict_type']}, {row['severity']}): {row['summary']}")
+    write(skill_refs / "open_conflict_warnings.md", "\n".join(lines) + "\n")
+    return len(rows)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", default=str(DEFAULT_ROOT), help="Praxis root")
     parser.add_argument("--skill", default=str(DEFAULT_SKILL), help="skill folder to update with generated references")
+    parser.add_argument("--kg-db", default="", help="SkillGraph DB used for conflict safety checks.")
+    parser.add_argument("--fail-on-open-conflicts", action="store_true", help="Refuse skill export when unresolved conflicts exist.")
+    parser.add_argument("--include-conflict-notes", action="store_true", help="Write open conflict warnings into skill references.")
     args = parser.parse_args()
 
     root = Path(args.root)
     skill = Path(args.skill)
     db_path = root / "db" / "praxis.sqlite"
+    kg_db = Path(args.kg_db) if args.kg_db else root / "kg" / "skill_graph.sqlite"
     out_dir = root / "exports"
     skill_refs = skill / "references"
+
+    conflict_count = 0
+    if kg_db.exists():
+        with sqlite3.connect(kg_db) as connection:
+            connection.row_factory = sqlite3.Row
+            conflict_count = open_conflict_count(connection)
+    if conflict_count and args.fail_on_open_conflicts:
+        print(f"Refusing skill export because {conflict_count} unresolved conflict(s) exist.")
+        print("Run `praxis conflicts list` to inspect them, or export without --fail-on-open-conflicts.")
+        return 2
 
     with connect(db_path) as connection:
         export_top_sources(connection, out_dir)
@@ -236,6 +271,13 @@ def main() -> int:
         export_agent_practices(connection, out_dir, skill_refs)
         export_skill_design(connection, out_dir, skill_refs)
         export_architecture_ref(connection, skill_refs)
+
+    if args.include_conflict_notes:
+        written = export_conflict_notes(kg_db, skill_refs)
+        if written:
+            print(f"Included {written} open conflict warning(s) in skill references.")
+    elif conflict_count:
+        print(f"warning: {conflict_count} unresolved conflict(s) exist.")
 
     print(f"Exported Markdown to {out_dir}")
     print(f"Updated skill references in {skill_refs}")

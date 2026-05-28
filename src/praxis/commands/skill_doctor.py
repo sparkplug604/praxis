@@ -40,8 +40,9 @@ def check_sqlite_tables(db_path: Path, tables: list[str], *, required: bool) -> 
     for table in tables:
         count = sqlite_count(db_path, table)
         if count is None:
-            print(f"missing: {db_path.name} table count: {table}")
-            ok = False
+            status = "missing" if required else "optional-missing"
+            print(f"{status}: {db_path.name} table count: {table}")
+            ok = False if required else ok
         else:
             print(f"ok: {db_path.name} table {table}: {count}")
     return ok
@@ -77,6 +78,8 @@ def main() -> int:
         "scripts/chunk_sources.py",
         "scripts/index_vectors.py",
         "scripts/hybrid_search.py",
+        "scripts/conflicts.py",
+        "scripts/dedupe.py",
         "scripts/graph_changes.py",
         "scripts/rollback_graph_change.py",
         "scripts/promote_graph_change.py",
@@ -100,6 +103,9 @@ def main() -> int:
             "graph_update_proposals",
             "graph_change_sets",
             "graph_change_items",
+            "claim_records",
+            "conflict_records",
+            "conflict_items",
         ],
         required=args.require_index,
     )

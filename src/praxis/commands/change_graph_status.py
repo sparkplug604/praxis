@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
+from conflict_ledger import scan_change_set
 from graph_audit import change_change_set_object_statuses
 from research_common import DEFAULT_ROOT, connect
 
@@ -41,12 +42,17 @@ def main(argv: list[str] | None = None, *, command: str | None = None) -> int:
                 actor=args.actor,
                 include_evidence=not args.skip_evidence,
             )
+            conflict_ids = scan_change_set(connection, args.change_set, phase=action) if action == "promote" else []
         except ValueError as exc:
             print(str(exc))
             return 1
 
     print(f"{action.title()}d graph objects from change set: {args.change_set}")
     print(f"Objects changed: {count}")
+    if conflict_ids:
+        print("Conflict warnings:")
+        for conflict_id in conflict_ids:
+            print(f"- {conflict_id}")
     return 0
 
 

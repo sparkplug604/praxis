@@ -9,6 +9,7 @@ from pathlib import Path
 
 from init_skill_graph import upsert_edge, upsert_evidence, upsert_node
 from graph_audit import audited_upsert, create_change_set, ensure_audit_schema
+from conflict_ledger import scan_change_set
 from research_common import DEFAULT_ROOT, connect, read_json, utc_now
 
 
@@ -120,12 +121,15 @@ def apply_proposal(
             shutil.copy2(proposal_path, applied)
             applied_path = str(applied)
 
+        conflict_ids = scan_change_set(connection, change_set_id, phase="apply")
+
     return {
         "evidence": len(proposal.get("evidence", [])),
         "nodes": len(proposal.get("nodes", [])),
         "edges": len(proposal.get("edges", [])),
         "change_set_id": change_set_id,
         "applied_path": applied_path,
+        "conflict_ids": conflict_ids,
     }
 
 
@@ -170,6 +174,10 @@ def main() -> int:
         return 0
     print(f"Applied proposal: {proposal_path}")
     print(f"change_set_id: {result['change_set_id']}")
+    if result.get("conflict_ids"):
+        print("Conflict warnings:")
+        for conflict_id in result["conflict_ids"]:
+            print(f"- {conflict_id}")
     if result["applied_path"]:
         print(f"Archived copy: {result['applied_path']}")
     return 0

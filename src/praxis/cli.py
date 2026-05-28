@@ -22,6 +22,8 @@ COMMANDS = {
     "propose": ("propose_graph_update.py", "Create an inspectable graph proposal."),
     "apply": ("apply_graph_update.py", "Apply a graph proposal with an audit log."),
     "changes": ("graph_changes.py", "Inspect audited SkillGraph change sets."),
+    "conflicts": ("conflicts.py", "List, inspect, resolve, and rescan conflict ledger records."),
+    "dedupe": ("dedupe.py", "Inspect and apply reversible source/entity dedupe actions."),
     "promote": ("promote_graph_change.py", "Promote objects from an audited SkillGraph change set."),
     "deprecate": ("deprecate_graph_change.py", "Deprecate objects from an audited SkillGraph change set."),
     "rollback": ("rollback_graph_change.py", "Rollback an audited SkillGraph change set."),
