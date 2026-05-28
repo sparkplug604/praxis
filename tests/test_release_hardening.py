@@ -211,6 +211,74 @@ class ReleaseHardeningTests(unittest.TestCase):
             self.assertIn("source_id:", result.stdout)
             self.assertIn("graph_hints_used:", result.stdout)
 
+    def test_auto_chunking_preserves_document_structure_metadata(self) -> None:
+        with tempfile.TemporaryDirectory() as tempdir:
+            root = make_root(tempdir)
+            source = root / "notes" / "production-rag.md"
+            source.write_text(
+                "\n".join(
+                    [
+                        "# Production RAG",
+                        "",
+                        "Chunking should follow semantic boundaries instead of arbitrary token windows.",
+                        "Good retrieval depends on coherent units of meaning.",
+                        "",
+                        "## Retrieval Metrics",
+                        "",
+                        "| Metric | Meaning |",
+                        "| --- | --- |",
+                        "| recall | whether the right evidence appears |",
+                        "| precision | whether irrelevant evidence is suppressed |",
+                        "",
+                        "## Example Code",
+                        "",
+                        "```python",
+                        "def chunk_document(text):",
+                        "    return text.split('\\n\\n')",
+                        "```",
+                        "",
+                        "## Notes",
+                        "",
+                        "Overlap helps continuity, but it is not a substitute for respecting headings, tables, and code blocks.",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+
+            run_praxis(
+                root,
+                "chunk",
+                "--reset",
+                "--no-runtimes",
+                "--no-skills",
+                "--target-chars",
+                "360",
+                "--overlap-chars",
+                "80",
+            )
+
+            with sqlite3.connect(root / "vectors" / "semantic_index.sqlite") as connection:
+                connection.row_factory = sqlite3.Row
+                rows = connection.execute(
+                    """
+                    SELECT section, text, metadata_json
+                    FROM semantic_chunks
+                    WHERE title = ?
+                    ORDER BY chunk_index
+                    """,
+                    ("Production RAG",),
+                ).fetchall()
+
+            self.assertGreaterEqual(len(rows), 2)
+            metadata = [json.loads(row["metadata_json"]) for row in rows]
+            self.assertTrue(all(item["chunking_strategy"] == "markdown" for item in metadata))
+            self.assertTrue(any("table" in item["block_types"] for item in metadata))
+            self.assertTrue(any("code_block" in item["block_types"] for item in metadata))
+            self.assertTrue(any("markdown heading boundary" in " ".join(item["boundary_rationale"]) for item in metadata))
+            self.assertTrue(any(item["parent_context"].startswith("Production RAG") for item in metadata))
+            self.assertTrue(any(item.get("previous_context") for item in metadata[1:]))
+            self.assertTrue(any("    return text.split" in row["text"] for row in rows))
+
     def test_duplicate_content_conflict_can_be_resolved(self) -> None:
         with tempfile.TemporaryDirectory() as tempdir:
             root = make_root(tempdir)

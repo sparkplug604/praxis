@@ -17,6 +17,7 @@ from vector_common import (
     ensure_schema,
     estimate_tokens,
     normalize_space,
+    normalize_structured_text,
     read_json,
     sha256_text,
     slug,
@@ -188,6 +189,7 @@ def infer_graph_nodes(path: Path, title: str, text: str) -> list[str]:
 def document_record(path: Path, root: Path) -> tuple[dict[str, Any], str]:
     text = safe_read(path)
     normalized = normalize_space(text)
+    structured_text = normalize_structured_text(text)
     metadata = metadata_for_capture_file(path)
     content_hash = sha256_text(normalized)
     title = metadata.get("title") or title_from_path(path, normalized, root)
@@ -212,7 +214,7 @@ def document_record(path: Path, root: Path) -> tuple[dict[str, Any], str]:
             "metadata": metadata,
             "confidence": confidence_for(metadata),
         },
-        normalized,
+        structured_text,
     )
 
 
@@ -292,6 +294,12 @@ def insert_chunk(connection, document: dict[str, Any], chunk: dict[str, Any], ch
         "path": document["path"],
         "url": document["url"],
         "content_hash": document["content_hash"],
+        "chunking_strategy": chunk.get("chunking_strategy", "legacy"),
+        "parent_context": chunk.get("parent_context", ""),
+        "block_types": chunk.get("block_types", []),
+        "boundary_rationale": chunk.get("boundary_rationale", []),
+        "previous_context": chunk.get("previous_context", ""),
+        "overlap_chars": chunk.get("overlap_chars", 0),
     }
     connection.execute(
         """
@@ -335,6 +343,12 @@ def main() -> int:
     parser.add_argument("--no-runtimes", action="store_false", dest="include_runtimes")
     parser.add_argument("--target-chars", type=int, default=1800)
     parser.add_argument("--overlap-chars", type=int, default=250)
+    parser.add_argument(
+        "--chunk-strategy",
+        choices=["auto", "legacy", "markdown", "code", "json", "plain"],
+        default="auto",
+        help="Chunking strategy. auto uses document structure; legacy preserves the original block chunker.",
+    )
     parser.add_argument("--max-files", type=int, default=0)
     parser.add_argument("--reset", action="store_true", help="Clear existing documents, chunks, and embeddings first.")
     parser.add_argument(
@@ -381,7 +395,15 @@ def main() -> int:
             if args.changed_only and not args.reset and unchanged_document_has_chunks(connection, document):
                 unchanged += 1
                 continue
-            chunks = chunk_text(text, target_chars=args.target_chars, overlap_chars=args.overlap_chars)
+            chunks = chunk_text(
+                text,
+                target_chars=args.target_chars,
+                overlap_chars=args.overlap_chars,
+                strategy=args.chunk_strategy,
+                path=document["path"],
+                source_type=document["source_type"],
+                title=document["title"],
+            )
             if not chunks:
                 skipped += 1
                 continue

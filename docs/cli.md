@@ -87,8 +87,12 @@ Refresh retrieval indexes:
 
 ```bash
 praxis chunk --changed-only
+praxis chunk --changed-only --chunk-strategy auto
+praxis chunk --changed-only --chunk-strategy legacy
 praxis embed --provider local-hash
 ```
+
+`praxis chunk` defaults to `--chunk-strategy auto`, which detects Markdown, code, JSON, and plain text. Auto chunking preserves structural boundaries where possible and stores chunk metadata such as parent context, block types, boundary rationale, and overlap context. Use `--chunk-strategy legacy` if you want the original paragraph-block chunker.
 
 Export with conflict safety:
 

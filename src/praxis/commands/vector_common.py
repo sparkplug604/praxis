@@ -11,6 +11,7 @@ import re
 import sqlite3
 import urllib.request
 from array import array
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -155,11 +156,68 @@ def normalize_space(text: str) -> str:
     return text.strip()
 
 
+def normalize_structured_text(text: str) -> str:
+    text = text.replace("\r\n", "\n").replace("\r", "\n")
+    text = re.sub(r"\n{4,}", "\n\n\n", text)
+    return text.strip()
+
+
 def tokenize(text: str) -> list[str]:
     return re.findall(r"[a-z0-9][a-z0-9_+\-./]{1,}", text.lower())
 
 
-def chunk_text(text: str, *, target_chars: int = 1800, overlap_chars: int = 250) -> list[dict[str, Any]]:
+@dataclass(frozen=True)
+class SemanticBlock:
+    text: str
+    block_type: str = "paragraph"
+    section: str = ""
+    level: int = 0
+    rationale: str = "paragraph boundary"
+
+
+def chunk_text(
+    text: str,
+    *,
+    target_chars: int = 1800,
+    overlap_chars: int = 250,
+    strategy: str = "auto",
+    path: str = "",
+    source_type: str = "",
+    title: str = "",
+) -> list[dict[str, Any]]:
+    """Split text into source-traceable chunks.
+
+    The default `auto` strategy uses document structure first and size second.
+    The `legacy` strategy preserves the original paragraph-block behavior.
+    """
+    selected = select_chunk_strategy(text, strategy=strategy, path=path, source_type=source_type)
+    if selected == "legacy":
+        return legacy_chunk_text(text, target_chars=target_chars, overlap_chars=overlap_chars)
+
+    text = normalize_structured_text(text)
+    if not text:
+        return []
+
+    if selected == "markdown":
+        blocks = markdown_blocks(text)
+    elif selected == "code":
+        blocks = code_blocks(text, path=path)
+    elif selected == "json":
+        blocks = json_blocks(text)
+    else:
+        blocks = plain_blocks(text)
+
+    chunks = pack_semantic_blocks(
+        blocks,
+        target_chars=target_chars,
+        overlap_chars=overlap_chars,
+        strategy=selected,
+        title=title,
+    )
+    return chunks or legacy_chunk_text(text, target_chars=target_chars, overlap_chars=overlap_chars)
+
+
+def legacy_chunk_text(text: str, *, target_chars: int = 1800, overlap_chars: int = 250) -> list[dict[str, Any]]:
     text = normalize_space(text)
     if not text:
         return []
@@ -199,6 +257,325 @@ def chunk_text(text: str, *, target_chars: int = 1800, overlap_chars: int = 250)
         if tail and (not chunks or tail != chunks[-1]["text"]):
             chunks.append({"section": current_section, "text": tail})
 
+    return chunks
+
+
+def select_chunk_strategy(text: str, *, strategy: str, path: str = "", source_type: str = "") -> str:
+    allowed = {"auto", "legacy", "markdown", "code", "json", "plain"}
+    if strategy not in allowed:
+        raise ValueError(f"Unsupported chunk strategy: {strategy}")
+    if strategy != "auto":
+        return strategy
+    suffix = Path(path).suffix.lower()
+    if suffix in {".py", ".js", ".ts", ".tsx", ".jsx", ".go", ".rs", ".java", ".c", ".cpp", ".h", ".hpp", ".rb", ".php", ".sh"}:
+        return "code"
+    if suffix == ".json":
+        return "json"
+    if suffix in {".md", ".markdown"} or source_type in {"capture", "skill", "docs", "reach_evidence"}:
+        return "markdown"
+    if re.search(r"(?m)^#{1,6}\s+\S", text) or "```" in text:
+        return "markdown"
+    return "plain"
+
+
+def markdown_blocks(text: str) -> list[SemanticBlock]:
+    lines = text.splitlines()
+    blocks: list[SemanticBlock] = []
+    buffer: list[str] = []
+    current_section = ""
+    current_level = 0
+    in_fence = False
+    fence_buffer: list[str] = []
+
+    def flush_buffer(block_type: str = "paragraph", rationale: str = "blank-line paragraph boundary") -> None:
+        nonlocal buffer
+        block_text = "\n".join(buffer).strip()
+        if block_text:
+            blocks.append(
+                SemanticBlock(
+                    text=block_text,
+                    block_type=block_type,
+                    section=current_section,
+                    level=current_level,
+                    rationale=rationale,
+                )
+            )
+        buffer = []
+
+    for line in lines:
+        stripped = line.strip()
+        if stripped.startswith("```") or stripped.startswith("~~~"):
+            if in_fence:
+                fence_buffer.append(line)
+                block_text = "\n".join(fence_buffer).strip()
+                if block_text:
+                    blocks.append(
+                        SemanticBlock(
+                            text=block_text,
+                            block_type="code_block",
+                            section=current_section,
+                            level=current_level,
+                            rationale="fenced code block boundary",
+                        )
+                    )
+                fence_buffer = []
+                in_fence = False
+            else:
+                flush_buffer()
+                in_fence = True
+                fence_buffer = [line]
+            continue
+        if in_fence:
+            fence_buffer.append(line)
+            continue
+
+        heading = re.match(r"^(#{1,6})\s+(.+)$", stripped)
+        if heading:
+            flush_buffer()
+            current_level = len(heading.group(1))
+            current_section = heading.group(2).strip()[:240]
+            blocks.append(
+                SemanticBlock(
+                    text=stripped,
+                    block_type="heading",
+                    section=current_section,
+                    level=current_level,
+                    rationale="markdown heading boundary",
+                )
+            )
+            continue
+
+        if not stripped:
+            flush_buffer()
+            continue
+        buffer.append(line)
+
+    if in_fence and fence_buffer:
+        blocks.append(
+            SemanticBlock(
+                text="\n".join(fence_buffer).strip(),
+                block_type="code_block",
+                section=current_section,
+                level=current_level,
+                rationale="unterminated fenced code block boundary",
+            )
+        )
+    flush_buffer()
+    return split_table_and_list_blocks(blocks)
+
+
+def split_table_and_list_blocks(blocks: list[SemanticBlock]) -> list[SemanticBlock]:
+    refined: list[SemanticBlock] = []
+    for block in blocks:
+        if block.block_type != "paragraph":
+            refined.append(block)
+            continue
+        lines = block.text.splitlines()
+        if len(lines) >= 2 and sum(1 for line in lines if "|" in line) >= 2:
+            refined.append(
+                SemanticBlock(
+                    text=block.text,
+                    block_type="table",
+                    section=block.section,
+                    level=block.level,
+                    rationale="markdown table boundary",
+                )
+            )
+            continue
+        if lines and all(re.match(r"^\s*(?:[-*+]|\d+[.)])\s+", line) for line in lines if line.strip()):
+            refined.append(
+                SemanticBlock(
+                    text=block.text,
+                    block_type="list",
+                    section=block.section,
+                    level=block.level,
+                    rationale="markdown list boundary",
+                )
+            )
+            continue
+        refined.append(block)
+    return refined
+
+
+def plain_blocks(text: str) -> list[SemanticBlock]:
+    blocks = []
+    for paragraph in [block.strip() for block in re.split(r"\n\s*\n", text) if block.strip()]:
+        blocks.append(SemanticBlock(text=paragraph, rationale="blank-line paragraph boundary"))
+    return blocks
+
+
+def code_blocks(text: str, *, path: str = "") -> list[SemanticBlock]:
+    lines = text.splitlines()
+    blocks: list[SemanticBlock] = []
+    current: list[str] = []
+    current_section = Path(path).name if path else "code"
+    definition_pattern = re.compile(r"^\s*(?:async\s+def|def|class)\s+([A-Za-z_][\w]*)|^\s*(?:export\s+)?(?:function|class)\s+([A-Za-z_][\w]*)")
+
+    def flush(rationale: str = "code blank-line boundary") -> None:
+        nonlocal current
+        block_text = "\n".join(current).strip("\n")
+        if block_text.strip():
+            blocks.append(
+                SemanticBlock(
+                    text=block_text,
+                    block_type="code",
+                    section=current_section,
+                    rationale=rationale,
+                )
+            )
+        current = []
+
+    for line in lines:
+        match = definition_pattern.match(line)
+        if match and current:
+            flush("code definition boundary")
+        if match:
+            current_section = next(group for group in match.groups() if group)[:240]
+        current.append(line)
+        if not line.strip() and len("\n".join(current)) >= max(600, 1800 // 2):
+            flush()
+    flush("end of code file")
+    return blocks
+
+
+def json_blocks(text: str) -> list[SemanticBlock]:
+    try:
+        data = json.loads(text)
+    except json.JSONDecodeError:
+        return plain_blocks(text)
+    blocks: list[SemanticBlock] = []
+    if isinstance(data, dict):
+        for key, value in data.items():
+            rendered = json.dumps({key: value}, indent=2, sort_keys=True)
+            blocks.append(
+                SemanticBlock(
+                    text=rendered,
+                    block_type="json_object",
+                    section=str(key)[:240],
+                    rationale="json top-level key boundary",
+                )
+            )
+    elif isinstance(data, list):
+        for index, value in enumerate(data):
+            rendered = json.dumps(value, indent=2, sort_keys=True)
+            blocks.append(
+                SemanticBlock(
+                    text=rendered,
+                    block_type="json_item",
+                    section=f"item {index}",
+                    rationale="json top-level item boundary",
+                )
+            )
+    return blocks or plain_blocks(text)
+
+
+def split_long_block(block: SemanticBlock, *, target_chars: int) -> list[SemanticBlock]:
+    if len(block.text) <= target_chars:
+        return [block]
+    if block.block_type in {"code", "code_block", "json_object", "json_item", "table"}:
+        parts = split_by_lines(block.text, target_chars=target_chars)
+        rationale = f"{block.rationale}; long {block.block_type} split by line boundary"
+    else:
+        parts = split_by_sentences(block.text, target_chars=target_chars)
+        rationale = f"{block.rationale}; long paragraph split by sentence boundary"
+    return [
+        SemanticBlock(
+            text=part,
+            block_type=block.block_type,
+            section=block.section,
+            level=block.level,
+            rationale=rationale,
+        )
+        for part in parts
+        if part.strip()
+    ]
+
+
+def split_by_lines(text: str, *, target_chars: int) -> list[str]:
+    chunks: list[str] = []
+    current: list[str] = []
+    for line in text.splitlines():
+        if current and len("\n".join(current + [line])) > target_chars:
+            chunks.append("\n".join(current).strip())
+            current = []
+        current.append(line)
+    if current:
+        chunks.append("\n".join(current).strip())
+    return chunks
+
+
+def split_by_sentences(text: str, *, target_chars: int) -> list[str]:
+    sentences = re.split(r"(?<=[.!?])\s+", text)
+    chunks: list[str] = []
+    current: list[str] = []
+    for sentence in sentences:
+        if current and len(" ".join(current + [sentence])) > target_chars:
+            chunks.append(" ".join(current).strip())
+            current = []
+        if len(sentence) > target_chars:
+            chunks.extend(sentence[idx : idx + target_chars].strip() for idx in range(0, len(sentence), target_chars))
+        else:
+            current.append(sentence)
+    if current:
+        chunks.append(" ".join(current).strip())
+    return chunks
+
+
+def pack_semantic_blocks(
+    blocks: list[SemanticBlock],
+    *,
+    target_chars: int,
+    overlap_chars: int,
+    strategy: str,
+    title: str = "",
+) -> list[dict[str, Any]]:
+    prepared: list[SemanticBlock] = []
+    for block in blocks:
+        prepared.extend(split_long_block(block, target_chars=target_chars))
+
+    chunks: list[dict[str, Any]] = []
+    current: list[SemanticBlock] = []
+
+    def flush(reason: str) -> None:
+        nonlocal current
+        if not current:
+            return
+        text = normalize_structured_text("\n\n".join(block.text for block in current))
+        if not text:
+            current = []
+            return
+        section = next((block.section for block in current if block.section), "")
+        parent_context = " > ".join(part for part in [title, section] if part)
+        chunks.append(
+            {
+                "section": section,
+                "text": text,
+                "chunking_strategy": strategy,
+                "parent_context": parent_context,
+                "block_types": sorted(set(block.block_type for block in current)),
+                "boundary_rationale": sorted(set([reason] + [block.rationale for block in current])),
+                "overlap_chars": overlap_chars,
+            }
+        )
+        current = []
+
+    for block in prepared:
+        candidate_len = len("\n\n".join([item.text for item in current] + [block.text]))
+        if current and candidate_len > target_chars:
+            flush("target size reached at semantic block boundary")
+        current.append(block)
+        if len("\n\n".join(item.text for item in current)) >= target_chars:
+            flush("target size reached at semantic block boundary")
+    flush("end of document")
+
+    if overlap_chars > 0 and len(chunks) > 1:
+        for index in range(1, len(chunks)):
+            previous_tail = chunks[index - 1]["text"][-overlap_chars:].strip()
+            if previous_tail:
+                chunks[index]["previous_context"] = previous_tail
+                chunks[index]["boundary_rationale"] = sorted(
+                    set(chunks[index]["boundary_rationale"] + ["previous chunk tail stored as metadata overlap"])
+                )
     return chunks
 
 

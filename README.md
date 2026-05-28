@@ -79,7 +79,7 @@ flowchart LR
 | --- | --- |
 | **Sources** | Web pages, papers, docs, local files, project notes, directories, watchlist hits, and other material you want agents to learn from. |
 | **Archive** | Praxis stores source text, summaries, metadata, source IDs, capture IDs, and hashes so knowledge keeps a paper trail. |
-| **Semantic Index** | Captured material is split into searchable chunks and embedded for retrieval. Praxis supports local-hash embeddings by default and optional OpenAI embeddings. |
+| **Semantic Index** | Captured material is split into structure-aware chunks and embedded for retrieval. Praxis detects Markdown, code, JSON, and plain text, keeps headings/tables/code boundaries, and records chunking rationale. |
 | **SkillGraph** | Sources, concepts, practices, risks, claims, conflicts, and relationships are mapped into graph memory that can be inspected, promoted, deprecated, merged, resolved, or rolled back. |
 | **Hybrid Retrieval** | Praxis searches across semantic chunks, keywords, and SkillGraph links. It also gives each result a priority score so fresher, more trusted, less conflicted knowledge can rank higher. Raw relevance is still shown, so the score does not become a black box. |
 | **Agent Work** | Agents use retrieved knowledge, graph context, and exported references during real tasks instead of relying only on one chat window. |
@@ -105,6 +105,7 @@ praxis rollback "chg:..."
 praxis dedupe list
 
 praxis chunk --changed-only
+praxis chunk --changed-only --chunk-strategy auto
 praxis embed --provider local-hash
 praxis search "what did this source teach us?" --explain
 praxis search "what did this source teach us?" --rank-by relevance
@@ -209,7 +210,7 @@ The Praxis core is the Python package and CLI. These commands do the actual work
 - `capture` and `ingest` bring in web sources, local files, directories, papers, notes, and selected watchlist hits.
 - `propose`, `apply`, `changes`, `promote`, `deprecate`, and `rollback` manage SkillGraph updates through audited change sets.
 - `conflicts` and `dedupe` inspect, resolve, merge, and split duplicate or conflicting knowledge.
-- `chunk` and `embed` turn captured material into semantic documents, searchable chunks, and embeddings.
+- `chunk` and `embed` turn captured material into semantic documents, structure-aware searchable chunks, and embeddings.
 - `search`, `semantic-search`, `graph`, and `library` retrieve knowledge through semantic search, keyword search, graph traversal, and relational lookup.
 - `scan`, `capture-hit`, and `refresh` help discover and refresh trusted sources over time.
 - `export-graph` and `export-skill-refs` turn stored graph and database knowledge into reusable Markdown references and skill-supporting files.
