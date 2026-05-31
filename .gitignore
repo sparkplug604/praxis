@@ -18,3 +18,13 @@ research/applied/**
 !research/applied/.gitkeep
 research/rejected/**
 !research/rejected/.gitkeep
+
+# Generated Praxis Reach / Agency workspaces.
+# Keep real client capsules, evidence cards, context packs, fixtures, exports,
+# deletion plans, receipts, and quarantine folders out of git by default.
+reach/**
+!reach/.gitkeep
+agency/clients/**
+!agency/clients/.gitkeep
+agency/lifecycle/**
+!agency/lifecycle/.gitkeep

@@ -7,6 +7,22 @@ praxis --help
 praxis <command> --help
 ```
 
+New users can start with the guided setup wizard:
+
+```bash
+praxis setup
+praxis setup --non-interactive --path reach-demo
+```
+
+Or run a module demo:
+
+```bash
+praxis demo
+praxis demo core
+praxis demo reach
+praxis demo agency
+```
+
 If the `praxis` command is not on PATH, use Python's module form:
 
 ```bash
@@ -27,7 +43,77 @@ If you run the CLI outside the checkout, pass `--root /path/to/Praxis` or set `P
 
 Important: `ingest`, `search`, `graph`, and other actions are Praxis subcommands. Run `praxis ingest "https://example.com/source"` or `py -m praxis ingest "https://example.com/source"`, not `ingest "https://example.com/source"` by itself.
 
+## Reach And Agency Commands
+
+Praxis Reach and Praxis Reach for Agencies are experimental modules for live operational context and multi-client GTM workflows.
+
+```bash
+praxis reach init
+praxis reach doctor
+praxis reach connectors list
+praxis reach connectors inspect hubspot
+praxis reach connectors test hubspot --client acme
+praxis reach connectors test hubspot --client acme --live
+praxis reach connectors test google_ads --client acme
+praxis reach connectors test google_analytics --client acme
+praxis reach connectors discover google_ads --client acme --live
+praxis reach connectors discover google_analytics --client acme --live
+praxis reach query list
+praxis reach query run weekly_gtm_review --client acme --days 90
+praxis reach query run website_performance --client acme --days 30
+praxis reach query run traffic_attribution_check --client acme --days 30
+praxis reach query run full_gtm_signal_check --client acme --days 30
+praxis reach query run weekly_gtm_review --client acme --start-date 2026-01-01 --end-date 2026-01-31
+praxis reach evidence list --client acme
+praxis reach evidence show "ev:..."
+praxis reach evidence refresh "ev:..."
+praxis reach evidence capture "ev:..."
+praxis reach stale list --client acme
+praxis reach context build weekly_gtm_review --client acme
+
+praxis agency client create acme --name "Acme SaaS" --crm hubspot --ads google_ads --analytics google_analytics
+praxis agency client list
+praxis agency client show acme
+praxis agency client doctor acme
+praxis agency client map-fields acme
+praxis agency client metrics acme
+praxis agency client define-metric acme mqls --canonical-object contact --description "Marketing qualified leads" --definition "lifecycle_stage == marketingqualifiedlead"
+praxis agency client define-conversion acme lead_form --source google_ads --source-name "Lead Form Submit" --canonical-metric conversions
+praxis agency client define-conversion acme ga4_lead --source google_analytics --source-name generate_lead --canonical-metric conversions
+praxis agency client archive acme --reason "contract ended"
+praxis agency client export acme
+praxis agency client delete-plan acme --reason "privacy request"
+praxis agency client show-delete-plan "del:..."
+praxis agency client delete --plan "del:..." --confirm-client acme --confirm-delete DELETE
+praxis agency client purge --receipt "receipt:..." --confirm-delete PURGE
+praxis agency fixture create demo --profile b2b-saas
+praxis agency run weekly_gtm_review --all-clients --context
+praxis agency run weekly_gtm_review --all-clients --context --continue-on-error
+praxis agency run weekly_gtm_review --clients acme,beta --start-date 2026-01-01 --end-date 2026-01-31
+praxis agency stale-context-report
+```
+
+Reach currently ships with `mock_crm`, `mock_ads`, `fixture_crm`, and `fixture_ads` so the zero-copy evidence-card flow can be tested without live credentials. Experimental `hubspot`, `google_ads`, and `google_analytics` connector classes are present but require credentials and read-only setup.
+
 ## Common Commands
+
+Run guided setup:
+
+```bash
+praxis setup
+praxis setup --non-interactive --path core
+praxis setup --non-interactive --path reach-demo
+praxis setup --non-interactive --path agency-demo
+```
+
+Run demos:
+
+```bash
+praxis demo
+praxis demo core
+praxis demo reach
+praxis demo agency
+```
 
 Initialize and check a checkout:
 
@@ -124,4 +210,6 @@ python3 scripts/chunk_sources.py --changed-only
 python3 scripts/index_vectors.py --provider local-hash
 python3 scripts/eval_retrieval.py
 python3 scripts/skill_doctor.py
+python3 scripts/setup.py
+python3 scripts/demo.py
 ```

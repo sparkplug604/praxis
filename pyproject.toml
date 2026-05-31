@@ -42,6 +42,24 @@ classifiers = [
   "Topic :: Software Development :: Libraries",
 ]
 
+[project.optional-dependencies]
+reach = []
+agency = []
+hubspot = []
+google-ads = [
+  "google-ads",
+]
+google-analytics = [
+  "google-analytics-data",
+  "google-analytics-admin",
+]
+meta-ads = []
+all = [
+  "google-ads",
+  "google-analytics-data",
+  "google-analytics-admin",
+]
+
 [project.urls]
 Homepage = "https://github.com/sparkplug604/praxis"
 Repository = "https://github.com/sparkplug604/praxis"

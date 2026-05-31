@@ -41,6 +41,10 @@ COMMANDS = {
     "export-skill-refs": ("export_skill_refs.py", "Export database records to skill references."),
     "add-note": ("add_memory_note.py", "Add a durable non-secret local note."),
     "add-source-stub": ("add_source_stub.py", "Create a source analysis Markdown stub."),
+    "setup": ("setup.py", "Guided setup wizard for Core, Reach, and Agency demos."),
+    "demo": ("demo.py", "Run small end-to-end demos for Core, Reach, and Agency."),
+    "reach": ("reach.py", "Manage live operational evidence, query manifests, and context packs."),
+    "agency": ("agency.py", "Manage multi-client agency capsules for Praxis Reach."),
     "refresh": ("refresh_stale_sources.py", "List sources due for refresh."),
 }
 
