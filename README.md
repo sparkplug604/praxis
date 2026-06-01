@@ -91,12 +91,6 @@ Praxis turns scattered knowledge, source-linked evidence, and client-specific co
 | CRM, ads, analytics, and other operational systems | **Praxis Reach** | Evidence cards, freshness metadata, GTM warnings, and compact context packs | Agent work that needs live business context without copying the source system |
 | Client capsules with systems, field maps, metrics, permissions, and lifecycle state | **Reach for Agencies** | Client-specific evidence, context packs, and repeatable workflows | Agency work across multiple clients with different stacks and data rules |
 
-| Layer | What It Does |
-| --- | --- |
-| **Praxis Core** | Captures source material, preserves raw evidence, creates summaries, chunks and embeds content, maps relationships in a SkillGraph, ranks search results, logs conflicts, and exports reusable references or skills. |
-| **Praxis Reach** | Runs approved read-only queries through connectors, writes evidence cards with source links and freshness metadata, checks for GTM conflicts, and builds context packs for agent work. |
-| **Praxis Reach for Agencies** | Stores per-client capsules with systems, field maps, metrics, permissions, and lifecycle state so the same workflow can run across different client stacks. |
-
 ## How Knowledge Moves Through Praxis
 
 Praxis has three related flows.
