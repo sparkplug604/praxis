@@ -1,55 +1,73 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="900" height="760" viewBox="0 0 900 760" role="img" aria-labelledby="title desc">
-  <title id="title">Praxis Reach for Agencies client capsule to workflow flow</title>
-  <desc id="desc">A flowchart showing how Reach for Agencies turns client capsules into repeatable agency workflows.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="360" viewBox="0 0 1200 360" role="img" aria-labelledby="title desc">
+  <title id="title">Praxis Reach for Agencies client capsule to workflow</title>
+  <desc id="desc">A node workflow showing a client capsule branching into systems, field maps, metrics, and permissions, then merging into Reach queries, evidence, context packs, and reusable agency workflows.</desc>
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="#563d72"/>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#2a2a2a"/>
     </marker>
     <style>
-      .bg { fill: #fbf8ff; }
-      .title { font: 700 30px ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #20162b; }
-      .subtitle { font: 400 15px ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #5f5070; }
-      .box { fill: #ffffff; stroke: #bea7dc; stroke-width: 2; rx: 18; }
-      .label { font: 700 18px ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #20162b; }
-      .note { font: 400 13px ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #62536f; }
-      .arrow { stroke: #563d72; stroke-width: 2.5; marker-end: url(#arrow); }
+      .box { fill: #f0edff; stroke: #8b6cff; stroke-width: 1.8; rx: 0; }
+      .text { font: 600 18px ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #2b2b33; text-anchor: middle; dominant-baseline: middle; }
+      .small { font-size: 16px; }
+      .arrow { fill: none; stroke: #2a2a2a; stroke-width: 1.7; marker-end: url(#arrow); }
     </style>
   </defs>
-  <rect class="bg" width="900" height="760"/>
-  <text class="title" x="80" y="58">Reach for Agencies: client capsule to workflow</text>
-  <text class="subtitle" x="80" y="86">Client-specific setup makes the same agency workflow safe across different stacks.</text>
 
-  <g transform="translate(170 125)">
-    <rect class="box" width="560" height="68"/>
-    <text class="label" x="28" y="29">1. Create a client capsule</text>
-    <text class="note" x="28" y="51">Each client gets isolated systems, permissions, lifecycle state, and local artifacts.</text>
-  </g>
-  <line class="arrow" x1="450" y1="199" x2="450" y2="232"/>
+  <rect width="1200" height="360" fill="#ffffff"/>
 
-  <g transform="translate(170 238)">
-    <rect class="box" width="560" height="68"/>
-    <text class="label" x="28" y="29">2. Map systems, fields, and metrics</text>
-    <text class="note" x="28" y="51">Normalize client-specific CRM, ads, analytics, and reporting conventions.</text>
+  <g transform="translate(45 151)">
+    <rect class="box" width="165" height="58"/>
+    <text class="text" x="82.5" y="23">Client</text>
+    <text class="text" x="82.5" y="43">Capsule</text>
   </g>
-  <line class="arrow" x1="450" y1="312" x2="450" y2="345"/>
 
-  <g transform="translate(170 351)">
-    <rect class="box" width="560" height="68"/>
-    <text class="label" x="28" y="29">3. Run Reach queries through that capsule</text>
-    <text class="note" x="28" y="51">Shared workflows use the client's own connectors, fields, and metric definitions.</text>
+  <g transform="translate(275 58)">
+    <rect class="box" width="155" height="58"/>
+    <text class="text" x="77.5" y="29">Systems</text>
   </g>
-  <line class="arrow" x1="450" y1="425" x2="450" y2="458"/>
 
-  <g transform="translate(170 464)">
-    <rect class="box" width="560" height="68"/>
-    <text class="label" x="28" y="29">4. Produce client-scoped evidence</text>
-    <text class="note" x="28" y="51">Evidence cards and context packs stay tied to the right client and source systems.</text>
+  <g transform="translate(275 151)">
+    <rect class="box" width="155" height="58"/>
+    <text class="text" x="77.5" y="29">Field Maps</text>
   </g>
-  <line class="arrow" x1="450" y1="538" x2="450" y2="571"/>
 
-  <g transform="translate(170 577)">
-    <rect class="box" width="560" height="68"/>
-    <text class="label" x="28" y="29">5. Reuse, archive, export, or delete safely</text>
-    <text class="note" x="28" y="51">Repeat workflows across clients while keeping offboarding and cleanup explicit.</text>
+  <g transform="translate(275 244)">
+    <rect class="box" width="155" height="58"/>
+    <text class="text" x="77.5" y="23">Metrics +</text>
+    <text class="text" x="77.5" y="43">Permissions</text>
   </g>
+
+  <g transform="translate(515 151)">
+    <rect class="box" width="145" height="58"/>
+    <text class="text" x="72.5" y="23">Reach</text>
+    <text class="text" x="72.5" y="43">Query</text>
+  </g>
+
+  <g transform="translate(725 151)">
+    <rect class="box" width="155" height="58"/>
+    <text class="text" x="77.5" y="23">Client</text>
+    <text class="text" x="77.5" y="43">Evidence</text>
+  </g>
+
+  <g transform="translate(945 151)">
+    <rect class="box" width="155" height="58"/>
+    <text class="text" x="77.5" y="23">Client</text>
+    <text class="text" x="77.5" y="43">Context Pack</text>
+  </g>
+
+  <g transform="translate(945 257)">
+    <rect class="box" width="155" height="58"/>
+    <text class="text small" x="77.5" y="23">Reusable Agency</text>
+    <text class="text small" x="77.5" y="43">Workflow</text>
+  </g>
+
+  <path class="arrow" d="M 210 180 H 240 V 87 H 270"/>
+  <path class="arrow" d="M 210 180 H 270"/>
+  <path class="arrow" d="M 210 180 H 240 V 273 H 270"/>
+  <path class="arrow" d="M 430 87 H 470 V 169 H 510"/>
+  <path class="arrow" d="M 430 180 H 510"/>
+  <path class="arrow" d="M 430 273 H 470 V 191 H 510"/>
+  <path class="arrow" d="M 660 180 H 720"/>
+  <path class="arrow" d="M 880 180 H 940"/>
+  <path class="arrow" d="M 1022 209 V 252"/>
 </svg>

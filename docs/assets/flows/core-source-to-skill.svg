@@ -1,55 +1,66 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="900" height="760" viewBox="0 0 900 760" role="img" aria-labelledby="title desc">
-  <title id="title">Praxis Core source to skill flow</title>
-  <desc id="desc">A flowchart showing how Praxis Core moves from captured sources to reusable agent skills.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="330" viewBox="0 0 1200 330" role="img" aria-labelledby="title desc">
+  <title id="title">Praxis Core source to skill workflow</title>
+  <desc id="desc">A node workflow showing Praxis Core capturing a source, archiving evidence, branching into chunking and SkillGraph memory, then supporting search, skills, and agent work.</desc>
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="#3a5f6f"/>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#2a2a2a"/>
     </marker>
     <style>
-      .bg { fill: #f8fbfa; }
-      .title { font: 700 30px ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #17242b; }
-      .subtitle { font: 400 15px ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #4f6570; }
-      .box { fill: #ffffff; stroke: #a7c7bf; stroke-width: 2; rx: 18; }
-      .label { font: 700 18px ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #17242b; }
-      .note { font: 400 13px ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #52666d; }
-      .arrow { stroke: #3a5f6f; stroke-width: 2.5; marker-end: url(#arrow); }
+      .box { fill: #f0edff; stroke: #8b6cff; stroke-width: 1.8; rx: 0; }
+      .text { font: 600 18px ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #2b2b33; text-anchor: middle; dominant-baseline: middle; }
+      .arrow { fill: none; stroke: #2a2a2a; stroke-width: 1.7; marker-end: url(#arrow); }
     </style>
   </defs>
-  <rect class="bg" width="900" height="760"/>
-  <text class="title" x="80" y="58">Praxis Core: source to skill</text>
-  <text class="subtitle" x="80" y="86">Documents become searchable evidence, graph memory, and reusable agent instructions.</text>
 
-  <g transform="translate(170 125)">
-    <rect class="box" width="560" height="68"/>
-    <text class="label" x="28" y="29">1. Capture source</text>
-    <text class="note" x="28" y="51">Save web pages, files, papers, notes, metadata, hashes, and source IDs.</text>
-  </g>
-  <line class="arrow" x1="450" y1="199" x2="450" y2="232"/>
+  <rect width="1200" height="330" fill="#ffffff"/>
 
-  <g transform="translate(170 238)">
-    <rect class="box" width="560" height="68"/>
-    <text class="label" x="28" y="29">2. Archive evidence</text>
-    <text class="note" x="28" y="51">Keep raw text and summaries attached so claims can be checked later.</text>
+  <g transform="translate(55 135)">
+    <rect class="box" width="160" height="58"/>
+    <text class="text" x="80" y="29">Capture Source</text>
   </g>
-  <line class="arrow" x1="450" y1="312" x2="450" y2="345"/>
 
-  <g transform="translate(170 351)">
-    <rect class="box" width="560" height="68"/>
-    <text class="label" x="28" y="29">3. Create provisional graph memory</text>
-    <text class="note" x="28" y="51">Write source-linked knowledge into the SkillGraph without hiding provenance.</text>
+  <g transform="translate(265 135)">
+    <rect class="box" width="170" height="58"/>
+    <text class="text" x="85" y="29">Archive Evidence</text>
   </g>
-  <line class="arrow" x1="450" y1="425" x2="450" y2="458"/>
 
-  <g transform="translate(170 464)">
-    <rect class="box" width="560" height="68"/>
-    <text class="label" x="28" y="29">4. Audit, inspect, or rollback</text>
-    <text class="note" x="28" y="51">Track changes, conflicts, dedupe decisions, and reversible graph updates.</text>
+  <g transform="translate(555 62)">
+    <rect class="box" width="160" height="58"/>
+    <text class="text" x="80" y="29">Chunk + Embed</text>
   </g>
-  <line class="arrow" x1="450" y1="538" x2="450" y2="571"/>
 
-  <g transform="translate(170 577)">
-    <rect class="box" width="560" height="68"/>
-    <text class="label" x="28" y="29">5. Chunk, embed, search, and export</text>
-    <text class="note" x="28" y="51">Rank context, explain matches, and turn selected knowledge into skill references.</text>
+  <g transform="translate(468 210)">
+    <rect class="box" width="205" height="58"/>
+    <text class="text" x="102.5" y="29">SkillGraph Proposal</text>
   </g>
+
+  <g transform="translate(735 210)">
+    <rect class="box" width="190" height="58"/>
+    <text class="text" x="95" y="29">Provisional Memory</text>
+  </g>
+
+  <g transform="translate(815 62)">
+    <rect class="box" width="170" height="58"/>
+    <text class="text" x="85" y="29">Hybrid Search</text>
+  </g>
+
+  <g transform="translate(1000 62)">
+    <rect class="box" width="145" height="58"/>
+    <text class="text" x="72.5" y="29">Agent Work</text>
+  </g>
+
+  <g transform="translate(980 210)">
+    <rect class="box" width="145" height="58"/>
+    <text class="text" x="72.5" y="29">Skill Export</text>
+  </g>
+
+  <path class="arrow" d="M 215 164 H 260"/>
+  <path class="arrow" d="M 435 164 H 490 V 91 H 550"/>
+  <path class="arrow" d="M 435 164 H 455 V 239 H 463"/>
+  <path class="arrow" d="M 673 239 H 730"/>
+  <path class="arrow" d="M 715 91 H 810"/>
+  <path class="arrow" d="M 925 239 H 975"/>
+  <path class="arrow" d="M 925 239 H 955 V 125 H 900"/>
+  <path class="arrow" d="M 985 91 H 995"/>
+  <path class="arrow" d="M 1052 210 V 125"/>
 </svg>

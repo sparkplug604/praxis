@@ -93,11 +93,11 @@ Praxis turns scattered knowledge, source-linked evidence, and client-specific co
 
 ## How Knowledge Moves Through Praxis
 
-Praxis has three related flows.
+Praxis has three related workflows. Each diagram shows the path through the system, and the table below it explains what happens at each step.
 
 **Core: source to skill**
 
-![Praxis Core source to skill flow](docs/assets/flows/core-source-to-skill.svg)
+![Praxis Core source to skill workflow diagram](docs/assets/flows/core-source-to-skill.png)
 
 | Step | What Happens |
 | --- | --- |
@@ -111,7 +111,7 @@ Praxis has three related flows.
 
 **Reach: live system to context pack**
 
-![Praxis Reach live system to context pack flow](docs/assets/flows/reach-live-system-to-context-pack.svg)
+![Praxis Reach live system to context pack workflow diagram](docs/assets/flows/reach-live-system-to-context-pack.png)
 
 | Step | What Happens |
 | --- | --- |
@@ -125,7 +125,7 @@ Praxis has three related flows.
 
 **Agency: client capsule to repeatable workflow**
 
-![Praxis Reach for Agencies client capsule to workflow flow](docs/assets/flows/agency-client-capsule-to-workflow.svg)
+![Praxis Reach for Agencies client capsule to workflow diagram](docs/assets/flows/agency-client-capsule-to-workflow.png)
 
 | Step | What Happens |
 | --- | --- |

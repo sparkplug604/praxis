@@ -1,55 +1,70 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="900" height="760" viewBox="0 0 900 760" role="img" aria-labelledby="title desc">
-  <title id="title">Praxis Reach live system to context pack flow</title>
-  <desc id="desc">A flowchart showing how Praxis Reach turns read-only operational queries into agent-ready context packs.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="330" viewBox="0 0 1200 330" role="img" aria-labelledby="title desc">
+  <title id="title">Praxis Reach live system to context pack workflow</title>
+  <desc id="desc">A node workflow showing Praxis Reach reading from a source system, recording a query manifest, creating evidence, checking freshness and conflicts, and producing context for agent work.</desc>
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="#704c24"/>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#2a2a2a"/>
     </marker>
     <style>
-      .bg { fill: #fffaf2; }
-      .title { font: 700 30px ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #261b12; }
-      .subtitle { font: 400 15px ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #6e5a44; }
-      .box { fill: #ffffff; stroke: #d6b16c; stroke-width: 2; rx: 18; }
-      .label { font: 700 18px ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #261b12; }
-      .note { font: 400 13px ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #6a5945; }
-      .arrow { stroke: #704c24; stroke-width: 2.5; marker-end: url(#arrow); }
+      .box { fill: #f0edff; stroke: #8b6cff; stroke-width: 1.8; rx: 0; }
+      .text { font: 600 18px ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #2b2b33; text-anchor: middle; dominant-baseline: middle; }
+      .small { font-size: 16px; }
+      .arrow { fill: none; stroke: #2a2a2a; stroke-width: 1.7; marker-end: url(#arrow); }
     </style>
   </defs>
-  <rect class="bg" width="900" height="760"/>
-  <text class="title" x="80" y="58">Praxis Reach: live system to context pack</text>
-  <text class="subtitle" x="80" y="86">Operational systems stay authoritative while agents get compact, source-linked evidence.</text>
 
-  <g transform="translate(170 125)">
-    <rect class="box" width="560" height="68"/>
-    <text class="label" x="28" y="29">1. Source system stays authoritative</text>
-    <text class="note" x="28" y="51">CRM, ads, analytics, and GTM data remain in the system of record.</text>
-  </g>
-  <line class="arrow" x1="450" y1="199" x2="450" y2="232"/>
+  <rect width="1200" height="330" fill="#ffffff"/>
 
-  <g transform="translate(170 238)">
-    <rect class="box" width="560" height="68"/>
-    <text class="label" x="28" y="29">2. Query through a read-only connector</text>
-    <text class="note" x="28" y="51">Praxis reads approved slices of data without writing back to the source.</text>
+  <g transform="translate(45 135)">
+    <rect class="box" width="155" height="58"/>
+    <text class="text" x="77.5" y="29">Source System</text>
   </g>
-  <line class="arrow" x1="450" y1="312" x2="450" y2="345"/>
 
-  <g transform="translate(170 351)">
-    <rect class="box" width="560" height="68"/>
-    <text class="label" x="28" y="29">3. Record a query manifest</text>
-    <text class="note" x="28" y="51">Metrics, filters, time windows, permissions, and source IDs are logged.</text>
+  <g transform="translate(245 135)">
+    <rect class="box" width="175" height="58"/>
+    <text class="text" x="87.5" y="23">Read-only</text>
+    <text class="text" x="87.5" y="43">Connector</text>
   </g>
-  <line class="arrow" x1="450" y1="425" x2="450" y2="458"/>
 
-  <g transform="translate(170 464)">
-    <rect class="box" width="560" height="68"/>
-    <text class="label" x="28" y="29">4. Create an evidence card</text>
-    <text class="note" x="28" y="51">Results become timestamped, source-linked evidence with freshness metadata.</text>
+  <g transform="translate(465 135)">
+    <rect class="box" width="165" height="58"/>
+    <text class="text" x="82.5" y="29">Query Manifest</text>
   </g>
-  <line class="arrow" x1="450" y1="538" x2="450" y2="571"/>
 
-  <g transform="translate(170 577)">
-    <rect class="box" width="560" height="68"/>
-    <text class="label" x="28" y="29">5. Build an agent-ready context pack</text>
-    <text class="note" x="28" y="51">Freshness checks and conflict warnings travel with compact GTM context.</text>
+  <g transform="translate(675 135)">
+    <rect class="box" width="150" height="58"/>
+    <text class="text" x="75" y="29">Evidence Card</text>
   </g>
+
+  <g transform="translate(875 65)">
+    <rect class="box" width="160" height="58"/>
+    <text class="text" x="80" y="29">Freshness Check</text>
+  </g>
+
+  <g transform="translate(875 205)">
+    <rect class="box" width="160" height="58"/>
+    <text class="text" x="80" y="23">Conflict</text>
+    <text class="text" x="80" y="43">Warnings</text>
+  </g>
+
+  <g transform="translate(1080 135)">
+    <rect class="box" width="90" height="58"/>
+    <text class="text small" x="45" y="23">Context</text>
+    <text class="text small" x="45" y="43">Pack</text>
+  </g>
+
+  <g transform="translate(1080 245)">
+    <rect class="box" width="90" height="58"/>
+    <text class="text small" x="45" y="23">Agent</text>
+    <text class="text small" x="45" y="43">Work</text>
+  </g>
+
+  <path class="arrow" d="M 200 164 H 240"/>
+  <path class="arrow" d="M 420 164 H 460"/>
+  <path class="arrow" d="M 630 164 H 670"/>
+  <path class="arrow" d="M 825 164 H 850 V 94 H 870"/>
+  <path class="arrow" d="M 825 164 H 850 V 234 H 870"/>
+  <path class="arrow" d="M 1035 94 H 1060 V 151 H 1075"/>
+  <path class="arrow" d="M 1035 234 H 1060 V 177 H 1075"/>
+  <path class="arrow" d="M 1125 193 V 240"/>
 </svg>
