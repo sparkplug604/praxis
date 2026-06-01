@@ -103,6 +103,8 @@ Praxis has three related flows.
 
 **Core: source to skill**
 
+![Praxis Core source to skill flow](docs/assets/flows/core-source-to-skill.svg)
+
 | Step | What Happens |
 | --- | --- |
 | Capture source | Praxis saves the source text, metadata, hashes, and source ID. |
@@ -115,6 +117,8 @@ Praxis has three related flows.
 
 **Reach: live system to context pack**
 
+![Praxis Reach live system to context pack flow](docs/assets/flows/reach-live-system-to-context-pack.svg)
+
 | Step | What Happens |
 | --- | --- |
 | Source system | The truthful operational data stays in the CRM, ads platform, analytics tool, or other source system. |
@@ -126,6 +130,8 @@ Praxis has three related flows.
 | Agent work | The agent works from compact evidence instead of raw exports or giant prompt dumps. |
 
 **Agency: client capsule to repeatable workflow**
+
+![Praxis Reach for Agencies client capsule to workflow flow](docs/assets/flows/agency-client-capsule-to-workflow.svg)
 
 | Step | What Happens |
 | --- | --- |

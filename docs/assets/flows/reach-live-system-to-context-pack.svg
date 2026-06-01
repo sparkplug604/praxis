@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="760" viewBox="0 0 900 760" role="img" aria-labelledby="title desc">
+  <title id="title">Praxis Reach live system to context pack flow</title>
+  <desc id="desc">A flowchart showing how Praxis Reach turns read-only operational queries into agent-ready context packs.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#704c24"/>
+    </marker>
+    <style>
+      .bg { fill: #fffaf2; }
+      .title { font: 700 30px ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #261b12; }
+      .subtitle { font: 400 15px ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #6e5a44; }
+      .box { fill: #ffffff; stroke: #d6b16c; stroke-width: 2; rx: 18; }
+      .label { font: 700 18px ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #261b12; }
+      .note { font: 400 13px ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #6a5945; }
+      .arrow { stroke: #704c24; stroke-width: 2.5; marker-end: url(#arrow); }
+    </style>
+  </defs>
+  <rect class="bg" width="900" height="760"/>
+  <text class="title" x="80" y="58">Praxis Reach: live system to context pack</text>
+  <text class="subtitle" x="80" y="86">Operational systems stay authoritative while agents get compact, source-linked evidence.</text>
+
+  <g transform="translate(170 125)">
+    <rect class="box" width="560" height="68"/>
+    <text class="label" x="28" y="29">1. Source system stays authoritative</text>
+    <text class="note" x="28" y="51">CRM, ads, analytics, and GTM data remain in the system of record.</text>
+  </g>
+  <line class="arrow" x1="450" y1="199" x2="450" y2="232"/>
+
+  <g transform="translate(170 238)">
+    <rect class="box" width="560" height="68"/>
+    <text class="label" x="28" y="29">2. Query through a read-only connector</text>
+    <text class="note" x="28" y="51">Praxis reads approved slices of data without writing back to the source.</text>
+  </g>
+  <line class="arrow" x1="450" y1="312" x2="450" y2="345"/>
+
+  <g transform="translate(170 351)">
+    <rect class="box" width="560" height="68"/>
+    <text class="label" x="28" y="29">3. Record a query manifest</text>
+    <text class="note" x="28" y="51">Metrics, filters, time windows, permissions, and source IDs are logged.</text>
+  </g>
+  <line class="arrow" x1="450" y1="425" x2="450" y2="458"/>
+
+  <g transform="translate(170 464)">
+    <rect class="box" width="560" height="68"/>
+    <text class="label" x="28" y="29">4. Create an evidence card</text>
+    <text class="note" x="28" y="51">Results become timestamped, source-linked evidence with freshness metadata.</text>
+  </g>
+  <line class="arrow" x1="450" y1="538" x2="450" y2="571"/>
+
+  <g transform="translate(170 577)">
+    <rect class="box" width="560" height="68"/>
+    <text class="label" x="28" y="29">5. Build an agent-ready context pack</text>
+    <text class="note" x="28" y="51">Freshness checks and conflict warnings travel with compact GTM context.</text>
+  </g>
+</svg>

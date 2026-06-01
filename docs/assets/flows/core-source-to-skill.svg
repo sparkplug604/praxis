@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="760" viewBox="0 0 900 760" role="img" aria-labelledby="title desc">
+  <title id="title">Praxis Core source to skill flow</title>
+  <desc id="desc">A flowchart showing how Praxis Core moves from captured sources to reusable agent skills.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#3a5f6f"/>
+    </marker>
+    <style>
+      .bg { fill: #f8fbfa; }
+      .title { font: 700 30px ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #17242b; }
+      .subtitle { font: 400 15px ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #4f6570; }
+      .box { fill: #ffffff; stroke: #a7c7bf; stroke-width: 2; rx: 18; }
+      .label { font: 700 18px ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #17242b; }
+      .note { font: 400 13px ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #52666d; }
+      .arrow { stroke: #3a5f6f; stroke-width: 2.5; marker-end: url(#arrow); }
+    </style>
+  </defs>
+  <rect class="bg" width="900" height="760"/>
+  <text class="title" x="80" y="58">Praxis Core: source to skill</text>
+  <text class="subtitle" x="80" y="86">Documents become searchable evidence, graph memory, and reusable agent instructions.</text>
+
+  <g transform="translate(170 125)">
+    <rect class="box" width="560" height="68"/>
+    <text class="label" x="28" y="29">1. Capture source</text>
+    <text class="note" x="28" y="51">Save web pages, files, papers, notes, metadata, hashes, and source IDs.</text>
+  </g>
+  <line class="arrow" x1="450" y1="199" x2="450" y2="232"/>
+
+  <g transform="translate(170 238)">
+    <rect class="box" width="560" height="68"/>
+    <text class="label" x="28" y="29">2. Archive evidence</text>
+    <text class="note" x="28" y="51">Keep raw text and summaries attached so claims can be checked later.</text>
+  </g>
+  <line class="arrow" x1="450" y1="312" x2="450" y2="345"/>
+
+  <g transform="translate(170 351)">
+    <rect class="box" width="560" height="68"/>
+    <text class="label" x="28" y="29">3. Create provisional graph memory</text>
+    <text class="note" x="28" y="51">Write source-linked knowledge into the SkillGraph without hiding provenance.</text>
+  </g>
+  <line class="arrow" x1="450" y1="425" x2="450" y2="458"/>
+
+  <g transform="translate(170 464)">
+    <rect class="box" width="560" height="68"/>
+    <text class="label" x="28" y="29">4. Audit, inspect, or rollback</text>
+    <text class="note" x="28" y="51">Track changes, conflicts, dedupe decisions, and reversible graph updates.</text>
+  </g>
+  <line class="arrow" x1="450" y1="538" x2="450" y2="571"/>
+
+  <g transform="translate(170 577)">
+    <rect class="box" width="560" height="68"/>
+    <text class="label" x="28" y="29">5. Chunk, embed, search, and export</text>
+    <text class="note" x="28" y="51">Rank context, explain matches, and turn selected knowledge into skill references.</text>
+  </g>
+</svg>
