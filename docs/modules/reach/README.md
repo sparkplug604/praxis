@@ -60,6 +60,7 @@ Reach avoids storing:
 | `hubspot` | Experimental real connector. |
 | `google_ads` | Experimental real connector. |
 | `google_analytics` | Experimental real connector for GA4. |
+| `bigquery` | Experimental real connector for warehouse-backed GTM evidence. |
 
 The fixture connectors let the CLI, evidence-card model, context-pack generation, manifest validation, and agency capsule flow be tested before live credentials are introduced.
 
@@ -155,13 +156,14 @@ Every Reach run is checked before an evidence card is written:
 
 This keeps Reach closer to a controlled evidence pipeline than a free-form data pull script.
 
-## Google Discovery And Conversion Mapping
+## Connector Discovery And Conversion Mapping
 
-Google connectors support account/property discovery through the generic connector command:
+Connectors that can enumerate configured source resources support discovery through the generic connector command:
 
 ```bash
 praxis reach connectors discover google_ads --client acme --live
 praxis reach connectors discover google_analytics --client acme --live
+praxis reach connectors discover bigquery --client acme --live
 ```
 
 Client-specific conversion definitions live in `metrics.json` and can be updated from the CLI:
@@ -184,6 +186,7 @@ Connector docs:
 - [HubSpot](../../connectors/hubspot.md)
 - [Google Ads](../../connectors/google-ads.md)
 - [Google Analytics / GA4](../../connectors/google-analytics.md)
+- [BigQuery](../../connectors/bigquery.md)
 
 ## GTM Conflict Checks
 

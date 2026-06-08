@@ -102,6 +102,7 @@ def main() -> int:
         "docs/connectors/hubspot.md",
         "docs/connectors/google-ads.md",
         "docs/connectors/google-analytics.md",
+        "docs/connectors/bigquery.md",
     ]:
         ok &= check_path(rel, ROOT / rel)
 

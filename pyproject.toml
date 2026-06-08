@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "praxis-ktos"
-version = "0.1.0"
+version = "0.2.0"
 description = "Local-first RAG and agent skills framework for source-traceable agent memory."
 readme = "README.md"
 requires-python = ">=3.9"
@@ -53,11 +53,15 @@ google-analytics = [
   "google-analytics-data",
   "google-analytics-admin",
 ]
+bigquery = [
+  "google-cloud-bigquery",
+]
 meta-ads = []
 all = [
   "google-ads",
   "google-analytics-data",
   "google-analytics-admin",
+  "google-cloud-bigquery",
 ]
 
 [project.urls]

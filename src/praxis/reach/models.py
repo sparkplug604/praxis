@@ -138,11 +138,39 @@ def analytics_system(provider: str, client_id: str = "") -> dict[str, Any]:
     return config
 
 
+def warehouse_system(provider: str, client_id: str = "") -> dict[str, Any]:
+    config: dict[str, Any] = {
+        "provider": provider,
+        "source_of_truth_for": ["contacts", "accounts", "segments", "buyer_signals", "campaign_outcomes"],
+    }
+    if provider == "bigquery":
+        client_key = env_slug(client_id)
+        config.update(
+            {
+                "auth_mode": "service_account_or_adc",
+                "project_id_env": f"BIGQUERY_{client_key}_PROJECT_ID" if client_key else "BIGQUERY_PROJECT_ID",
+                "dataset_env": f"BIGQUERY_{client_key}_DATASET" if client_key else "BIGQUERY_DATASET",
+                "credentials_file_env": f"BIGQUERY_{client_key}_CREDENTIALS_FILE" if client_key else "GOOGLE_APPLICATION_CREDENTIALS",
+                "fallback_project_id_env": "BIGQUERY_PROJECT_ID",
+                "fallback_dataset_env": "BIGQUERY_DATASET",
+                "fallback_credentials_file_env": "GOOGLE_APPLICATION_CREDENTIALS",
+                "location": "US",
+                "contacts_table": "contacts",
+                "buyer_signals_table": "buyer_signals",
+                "allowed_tables": ["contacts", "accounts", "campaigns", "opportunities", "buyer_signals", "campaign_outcomes"],
+                "max_bytes_billed": 1_000_000_000,
+                "max_rows": 1000,
+            }
+        )
+    return config
+
+
 def default_systems(
     crm: str = "mock_crm",
     ads: str = "mock_ads",
     client_id: str = "",
     analytics: str | None = None,
+    warehouse: str | None = None,
 ) -> dict[str, Any]:
     systems = {
         "crm": crm_system(crm, client_id=client_id),
@@ -150,6 +178,8 @@ def default_systems(
     }
     if analytics:
         systems["analytics"] = analytics_system(analytics, client_id=client_id)
+    if warehouse:
+        systems["warehouse"] = warehouse_system(warehouse, client_id=client_id)
     return systems
 
 

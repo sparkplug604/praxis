@@ -246,6 +246,7 @@ Module docs:
 | HubSpot connector | Experimental |
 | Google Ads connector | Experimental |
 | Google Analytics / GA4 connector | Experimental |
+| BigQuery connector | Experimental |
 | Live writeback into source systems | Not supported |
 | Hosted service / multi-user cloud app | Not supported |
 
@@ -255,4 +256,4 @@ Praxis is early-stage and intentionally local-first.
 
 It is not a hosted service, not a production vector database, and not a full autonomous agent runtime. It does not automatically promote provisional graph updates into high-trust skills or policies, and it does not ship with private corpora or user-specific connectors.
 
-Praxis Reach is also not a live CRM, ads-platform, analytics replacement, or warehouse. The current Reach module ships with mock and fixture connectors, plus experimental HubSpot, Google Ads, and Google Analytics connector classes. Real connectors should be read-only first, source-linked, permission-scoped, and designed so systems of record stay where they are.
+Praxis Reach is also not a live CRM, ads-platform, analytics replacement, or warehouse. The current Reach module ships with mock and fixture connectors, plus experimental HubSpot, Google Ads, Google Analytics, and BigQuery connector classes. Real connectors should be read-only first, source-linked, permission-scoped, and designed so systems of record stay where they are.

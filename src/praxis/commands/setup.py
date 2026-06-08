@@ -17,6 +17,7 @@ SETUP_PATHS = {
     "hubspot": "Live HubSpot setup guide",
     "google-ads": "Live Google Ads setup guide",
     "ga4": "Live Google Analytics setup guide",
+    "bigquery": "Live BigQuery warehouse setup guide",
 }
 
 
@@ -113,6 +114,7 @@ def setup_live_guide(kind: str) -> int:
         "hubspot": "docs/connectors/hubspot.md",
         "google-ads": "docs/connectors/google-ads.md",
         "ga4": "docs/connectors/google-analytics.md",
+        "bigquery": "docs/connectors/bigquery.md",
     }
     print(f"# {SETUP_PATHS[kind]}\n")
     print("This path does not ask for credentials or call live APIs.")
@@ -125,9 +127,12 @@ def setup_live_guide(kind: str) -> int:
     elif kind == "google-ads":
         print('  praxis agency client create acme --crm mock_crm --ads google_ads')
         print("  praxis reach connectors test google_ads --client acme")
-    else:
+    elif kind == "ga4":
         print('  praxis agency client create acme --crm mock_crm --ads mock_ads --analytics google_analytics')
         print("  praxis reach connectors test google_analytics --client acme")
+    else:
+        print('  praxis agency client create acme --crm mock_crm --ads mock_ads --warehouse bigquery')
+        print("  praxis reach connectors test bigquery --client acme")
     return 0
 
 

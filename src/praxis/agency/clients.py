@@ -34,6 +34,7 @@ def create_client(
     crm: str = "mock_crm",
     ads: str = "mock_ads",
     analytics: str | None = None,
+    warehouse: str | None = None,
     overwrite: bool = False,
 ) -> ClientCapsule:
     normalized_client_id = slug(client_id)
@@ -42,7 +43,7 @@ def create_client(
         name=name or client_id,
         timezone=timezone,
         currency=currency,
-        systems=default_systems(crm=crm, ads=ads, analytics=analytics, client_id=normalized_client_id),
+        systems=default_systems(crm=crm, ads=ads, analytics=analytics, warehouse=warehouse, client_id=normalized_client_id),
         metrics=default_metric_definitions(analytics=analytics),
         field_map=default_field_map(crm=crm, ads=ads, analytics=analytics),
         permissions={},

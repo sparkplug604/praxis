@@ -11,6 +11,8 @@ import unittest
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
+from praxis.reach.connectors.bigquery import BigQueryConnector
+from praxis.reach.connectors.bigquery_client import BigQueryRows
 from praxis.reach.connectors.google_ads import GoogleAdsConnector
 from praxis.reach.connectors.google_ads_client import GoogleAdsRows
 from praxis.reach.connectors.google_analytics import GoogleAnalyticsConnector
@@ -431,6 +433,162 @@ class ReachAgencyTests(unittest.TestCase):
             self.assertIn("status: missing_configuration", test.stdout)
             self.assertIn("GOOGLE_ADS_ACME_CONFIGURATION_FILE", test.stdout)
             self.assertIn("GOOGLE_ADS_ACME_CUSTOMER_ID", test.stdout)
+
+    def test_bigquery_connector_reports_per_client_configuration(self) -> None:
+        with tempfile.TemporaryDirectory() as tempdir:
+            root = Path(tempdir)
+            run_praxis(root, "reach", "init")
+            run_praxis(root, "agency", "client", "create", "acme", "--crm", "mock_crm", "--ads", "mock_ads", "--warehouse", "bigquery")
+
+            shown = run_praxis(root, "agency", "client", "show", "acme")
+            self.assertIn("bigquery", shown.stdout)
+            config = json.loads((root / "agency" / "clients" / "acme" / "systems.json").read_text(encoding="utf-8"))
+            warehouse_config = config["systems"]["warehouse"]
+            self.assertEqual("BIGQUERY_ACME_PROJECT_ID", warehouse_config["project_id_env"])
+            self.assertEqual("BIGQUERY_ACME_DATASET", warehouse_config["dataset_env"])
+            self.assertIn("contacts", warehouse_config["allowed_tables"])
+
+            query_list = run_praxis(root, "reach", "query", "list")
+            self.assertIn("warehouse_segment_size_preview", query_list.stdout)
+
+            test = run_praxis(root, "reach", "connectors", "test", "bigquery", "--client", "acme", check=False)
+            self.assertEqual(1, test.returncode)
+            self.assertIn("status: missing_configuration", test.stdout)
+            self.assertIn("BIGQUERY_ACME_PROJECT_ID", test.stdout)
+            self.assertIn("BIGQUERY_ACME_DATASET", test.stdout)
+
+    def test_bigquery_connector_runs_segment_size_preview_with_fake_client(self) -> None:
+        calls = []
+
+        class FakeBigQueryClient:
+            def __init__(self, **kwargs) -> None:
+                self.kwargs = kwargs
+
+            def dry_run(self, query, *, parameters=None, maximum_bytes_billed=None, labels=None):
+                calls.append({"kind": "dry_run", "query": query, "parameters": parameters or {}, "maximum_bytes_billed": maximum_bytes_billed, "labels": labels, "kwargs": self.kwargs})
+                return {"job_id": "dry-job", "total_bytes_processed": 12_345}
+
+            def query(self, query, *, parameters=None, maximum_bytes_billed=None, labels=None):
+                calls.append({"kind": "query", "query": query, "parameters": parameters or {}, "maximum_bytes_billed": maximum_bytes_billed, "labels": labels, "kwargs": self.kwargs})
+                return BigQueryRows(
+                    rows=[
+                        {
+                            "contacts": 1500,
+                            "accounts": 82,
+                            "segment_size": 1500,
+                            "suppressed_count": 37,
+                            "missing_email_count": 12,
+                        }
+                    ],
+                    row_count=1,
+                    metadata={"job_id": "query-job", "total_bytes_processed": 12_345, "cache_hit": False},
+                )
+
+        capsule = ClientCapsule(
+            client_id="acme",
+            name="Acme",
+            systems=default_systems(crm="mock_crm", ads="mock_ads", warehouse="bigquery", client_id="acme"),
+            metrics=default_metric_definitions(),
+            field_map=default_field_map(crm="mock_crm", ads="mock_ads"),
+        )
+        manifest = load_manifest(Path(tempfile.mkdtemp()), "warehouse_segment_size_preview")
+        os.environ["BIGQUERY_ACME_PROJECT_ID"] = "acme-prod"
+        os.environ["BIGQUERY_ACME_DATASET"] = "gtm_mart"
+        try:
+            result = BigQueryConnector(client_factory=FakeBigQueryClient).run_query(capsule, manifest, {"client_id": "acme"})
+        finally:
+            os.environ.pop("BIGQUERY_ACME_PROJECT_ID", None)
+            os.environ.pop("BIGQUERY_ACME_DATASET", None)
+
+        self.assertEqual(1500, result.metrics["contacts"])
+        self.assertEqual(82, result.metrics["accounts"])
+        self.assertEqual(37, result.metrics["suppressed_count"])
+        self.assertEqual("aggregate_summary", result.storage_level)
+        self.assertEqual("none", result.metadata["row_storage"])
+        self.assertEqual(12_345, result.metadata["dry_run_bytes_estimate"])
+        self.assertEqual(["acme-prod.gtm_mart.contacts"], result.metadata["tables_referenced"])
+        self.assertIn("FROM `acme-prod.gtm_mart.contacts`", calls[0]["query"])
+        self.assertEqual("acme", calls[0]["labels"]["praxis_client"])
+        self.assertEqual(1_000_000_000, calls[0]["maximum_bytes_billed"])
+
+    def test_bigquery_connector_runs_buyer_signal_rollup_and_discovery(self) -> None:
+        class FakeBigQueryClient:
+            def __init__(self, **kwargs) -> None:
+                self.kwargs = kwargs
+
+            def dry_run(self, query, *, parameters=None, maximum_bytes_billed=None, labels=None):
+                return {"job_id": "dry-job", "total_bytes_processed": 123}
+
+            def query(self, query, *, parameters=None, maximum_bytes_billed=None, labels=None):
+                self.query_call = {"query": query, "parameters": parameters or {}, "labels": labels or {}}
+                return BigQueryRows(
+                    rows=[{"buyer_signal_count": 24, "avg_signal_strength": 0.73, "accounts": 11, "contacts": 19}],
+                    row_count=1,
+                    metadata={"job_id": "query-job", "total_bytes_processed": 456},
+                )
+
+            def list_tables(self, *, project_id, dataset, include_columns=False):
+                return [{"kind": "table", "id": "buyer_signals", "resource_name": f"{project_id}.{dataset}.buyer_signals"}]
+
+        capsule = ClientCapsule(
+            client_id="acme",
+            name="Acme",
+            systems=default_systems(crm="mock_crm", ads="mock_ads", warehouse="bigquery", client_id="acme"),
+            metrics=default_metric_definitions(),
+            field_map=default_field_map(crm="mock_crm", ads="mock_ads"),
+        )
+        connector = BigQueryConnector(client_factory=FakeBigQueryClient)
+        os.environ["BIGQUERY_ACME_PROJECT_ID"] = "acme-prod"
+        os.environ["BIGQUERY_ACME_DATASET"] = "gtm_mart"
+        try:
+            setup = connector.check_setup(capsule, live=True)
+            discovered = connector.discover_resources(capsule, live=True)
+            result = connector.run_query(
+                capsule,
+                load_manifest(Path(tempfile.mkdtemp()), "warehouse_buyer_signal_rollup"),
+                {"client_id": "acme", "start_date": "2026-01-01", "end_date": "2026-01-31"},
+            )
+        finally:
+            os.environ.pop("BIGQUERY_ACME_PROJECT_ID", None)
+            os.environ.pop("BIGQUERY_ACME_DATASET", None)
+
+        self.assertEqual("ok", setup.status)
+        self.assertTrue(any(resource.get("kind") == "table" for resource in discovered.resources))
+        self.assertEqual(24, result.metrics["buyer_signal_count"])
+        self.assertEqual(0.73, result.metrics["avg_signal_strength"])
+        self.assertEqual(11, result.metrics["accounts"])
+        self.assertIn("buyer_signals", result.summary)
+        self.assertIn("start_date", result.metadata["query_parameters"])
+
+    def test_bigquery_connector_blocks_queries_above_budget(self) -> None:
+        class ExpensiveBigQueryClient:
+            def __init__(self, **kwargs) -> None:
+                self.kwargs = kwargs
+
+            def dry_run(self, query, *, parameters=None, maximum_bytes_billed=None, labels=None):
+                return {"job_id": "dry-job", "total_bytes_processed": 10_000}
+
+            def query(self, query, *, parameters=None, maximum_bytes_billed=None, labels=None):  # pragma: no cover - should not execute.
+                raise AssertionError("query should not run after over-budget dry run")
+
+        systems = default_systems(crm="mock_crm", ads="mock_ads", warehouse="bigquery", client_id="acme")
+        systems["warehouse"]["max_bytes_billed"] = 100
+        capsule = ClientCapsule(
+            client_id="acme",
+            name="Acme",
+            systems=systems,
+            metrics=default_metric_definitions(),
+            field_map=default_field_map(crm="mock_crm", ads="mock_ads"),
+        )
+        manifest = load_manifest(Path(tempfile.mkdtemp()), "warehouse_segment_size_preview")
+        os.environ["BIGQUERY_ACME_PROJECT_ID"] = "acme-prod"
+        os.environ["BIGQUERY_ACME_DATASET"] = "gtm_mart"
+        try:
+            with self.assertRaisesRegex(RuntimeError, "above max_bytes_billed"):
+                BigQueryConnector(client_factory=ExpensiveBigQueryClient).run_query(capsule, manifest, {"client_id": "acme"})
+        finally:
+            os.environ.pop("BIGQUERY_ACME_PROJECT_ID", None)
+            os.environ.pop("BIGQUERY_ACME_DATASET", None)
 
     def test_google_ads_connector_aggregates_streamed_campaign_metrics(self) -> None:
         calls = []

@@ -59,6 +59,16 @@ CANONICAL_OBJECTS: dict[str, dict[str, Any]] = {
         "required_fields": ["path"],
         "common_sources": ["google_analytics.landing_pages"],
     },
+    "buyer_signal": {
+        "description": "A time-sensitive GTM signal attached to an account, contact, campaign, or opportunity.",
+        "required_fields": ["id", "signal_type", "observed_at"],
+        "common_sources": ["bigquery.buyer_signals", "warehouse.buyer_signals", "fixture_warehouse.buyer_signals"],
+    },
+    "segment": {
+        "description": "A campaignable audience, cohort, or GTM list segment.",
+        "required_fields": ["id", "name"],
+        "common_sources": ["bigquery.segments", "warehouse.segments", "fixture_warehouse.segments"],
+    },
 }
 
 
@@ -88,6 +98,14 @@ CANONICAL_METRICS: dict[str, dict[str, Any]] = {
     "cac": {"object": "metric_snapshot", "description": "Customer acquisition cost."},
     "roas": {"object": "metric_snapshot", "description": "Revenue attributed to ad spend divided by spend."},
     "conversion_rate": {"object": "metric_snapshot", "description": "Conversions divided by the relevant traffic or lead base."},
+    "contacts": {"object": "contact", "description": "Contacts matching a query, segment, or cohort definition."},
+    "accounts": {"object": "company", "description": "Distinct accounts or organizations matching a query, segment, or cohort definition."},
+    "segment_size": {"object": "segment", "description": "Total members in a candidate segment or cohort."},
+    "suppressed_count": {"object": "contact", "description": "Contacts suppressed by unsubscribe, bounce, customer, active opportunity, or other exclusion logic."},
+    "missing_email_count": {"object": "contact", "description": "Contacts with no usable email address."},
+    "stale_record_count": {"object": "contact", "description": "Records older than the configured freshness threshold."},
+    "buyer_signal_count": {"object": "buyer_signal", "description": "Buyer signals matching a query, account, segment, or time window."},
+    "avg_signal_strength": {"object": "buyer_signal", "description": "Average normalized strength of buyer signals in a query result."},
 }
 
 

@@ -52,6 +52,7 @@ def cmd_client_create(args: argparse.Namespace) -> int:
         crm=args.crm,
         ads=args.ads,
         analytics=args.analytics or None,
+        warehouse=args.warehouse or None,
         overwrite=args.overwrite,
     )
     print(f"client_id: {capsule.client_id}")
@@ -304,6 +305,7 @@ def build_parser() -> argparse.ArgumentParser:
     create.add_argument("--crm", default="mock_crm", help="CRM provider id.")
     create.add_argument("--ads", default="mock_ads", help="Ads provider id.")
     create.add_argument("--analytics", default="", help="Optional analytics provider id, such as google_analytics.")
+    create.add_argument("--warehouse", default="", help="Optional warehouse provider id, such as bigquery.")
     create.add_argument("--overwrite", action="store_true", help="Replace an existing capsule.")
     create.set_defaults(func=cmd_client_create)
 

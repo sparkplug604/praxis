@@ -29,7 +29,12 @@ This is the map for the Praxis documentation.
 - [HubSpot](connectors/hubspot.md)
 - [Google Ads](connectors/google-ads.md)
 - [Google Analytics / GA4](connectors/google-analytics.md)
+- [BigQuery](connectors/bigquery.md)
 
 ## Architecture
 
 - [Architecture Notes](architecture.md)
+
+## Releases
+
+- [v0.2.0](releases/v0.2.0.md)
