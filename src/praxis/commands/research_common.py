@@ -4,22 +4,20 @@ from __future__ import annotations
 
 import datetime as _dt
 import hashlib
-import html.parser
-import io
 import json
 import re
 import sqlite3
-import urllib.error
-import urllib.request
 from pathlib import Path
 from typing import Any
 
 from praxis.paths import default_root
+from praxis.intake import extract_source
+from praxis.intake.converters import convert_pdf as _convert_pdf
+from praxis.intake.converters import html_to_text as _html_to_text
 
 
 DEFAULT_ROOT = default_root()
 DEFAULT_DB = DEFAULT_ROOT / "kg" / "skill_graph.sqlite"
-USER_AGENT = "PraxisResearch/0.1 (+local research pipeline)"
 
 
 def utc_now() -> str:
@@ -47,121 +45,30 @@ def connect(db_path: Path = DEFAULT_DB) -> sqlite3.Connection:
     return connection
 
 
-class _HTMLTextExtractor(html.parser.HTMLParser):
-    def __init__(self) -> None:
-        super().__init__()
-        self._skip = 0
-        self.parts: list[str] = []
-
-    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
-        if tag in {"script", "style", "noscript", "svg"}:
-            self._skip += 1
-        if tag in {"p", "br", "li", "h1", "h2", "h3", "h4", "tr"}:
-            self.parts.append("\n")
-
-    def handle_endtag(self, tag: str) -> None:
-        if tag in {"script", "style", "noscript", "svg"} and self._skip:
-            self._skip -= 1
-        if tag in {"p", "li", "h1", "h2", "h3", "h4", "tr"}:
-            self.parts.append("\n")
-
-    def handle_data(self, data: str) -> None:
-        if not self._skip:
-            self.parts.append(data)
-
-    def text(self) -> str:
-        raw = " ".join(self.parts)
-        raw = re.sub(r"[ \t\r\f\v]+", " ", raw)
-        raw = re.sub(r"\n\s+", "\n", raw)
-        raw = re.sub(r"\n{3,}", "\n\n", raw)
-        return raw.strip()
-
-
 def html_to_text(raw: str) -> str:
-    parser = _HTMLTextExtractor()
-    parser.feed(raw)
-    return parser.text()
+    return _html_to_text(raw)
 
 
 def pdf_to_text(body: bytes) -> tuple[str, dict[str, Any]]:
-    try:
-        from pypdf import PdfReader
-    except Exception as exc:  # pragma: no cover - depends on optional bundled runtime
-        raise RuntimeError("PDF capture requires pypdf. Install pypdf or run with a Python runtime that includes it.") from exc
-
-    reader = PdfReader(io.BytesIO(body))
-    pages: list[str] = []
-    for index, page in enumerate(reader.pages, 1):
-        extracted = page.extract_text() or ""
-        if extracted.strip():
-            pages.append(f"\n\n## Page {index}\n\n{extracted.strip()}")
-    return "\n".join(pages).strip(), {"pdf_pages": len(reader.pages)}
+    units, metadata, warnings = _convert_pdf("inline.pdf", body, {})
+    text = "\n\n".join(unit.display_text() for unit in units if unit.display_text())
+    return text, {**metadata, "intake_warnings": warnings}
 
 
 def read_web(url: str, *, timeout: int = 20) -> tuple[str, dict[str, Any]]:
-    request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
-    try:
-        with urllib.request.urlopen(request, timeout=timeout) as response:
-            content_type = response.headers.get("content-type", "")
-            charset = response.headers.get_content_charset() or "utf-8"
-            body = response.read()
-            metadata = {
-                "url": url,
-                "content_type": content_type,
-                "status": getattr(response, "status", None),
-                "final_url": response.geturl(),
-            }
-            if "pdf" in content_type.lower() or url.lower().endswith(".pdf"):
-                text, pdf_metadata = pdf_to_text(body)
-                return text, {**metadata, **pdf_metadata}
-            decoded = body.decode(charset, errors="replace")
-            text = html_to_text(decoded) if "html" in content_type.lower() else decoded
-            return text, metadata
-    except urllib.error.URLError as exc:
-        raise RuntimeError(f"Could not fetch {url}: {exc}") from exc
-
-
-def _candidate_files(root: Path) -> list[Path]:
-    names = {
-        "README.md", "README.rst", "README.txt", "pyproject.toml", "package.json",
-        "CHANGELOG.md", "docs/index.md", "docs/quickstart.md", "docs/getting-started.md",
-        "docs/concepts/how-it-works.md", "NON-GOALS.md", "SECURITY.md",
-    }
-    files: list[Path] = []
-    for name in names:
-        path = root / name
-        if path.exists() and path.is_file():
-            files.append(path)
-    if len(files) < 12:
-        for path in sorted((root / "docs").glob("**/*.md"))[:20] if (root / "docs").exists() else []:
-            if path not in files:
-                files.append(path)
-    return files[:28]
+    return extract_source(url).to_legacy()
 
 
 def read_local(source: Path) -> tuple[str, dict[str, Any]]:
-    if source.is_file():
-        text = source.read_text(encoding="utf-8", errors="replace")
-        return text, {"path": str(source), "kind": "file"}
-    if source.is_dir():
-        chunks: list[str] = [f"# Local directory capture: {source}\n"]
-        files = _candidate_files(source)
-        for path in files:
-            rel = path.relative_to(source)
-            chunks.append(f"\n\n## File: {rel}\n")
-            chunks.append(path.read_text(encoding="utf-8", errors="replace")[:50000])
-        if not files:
-            listing = "\n".join(str(p.relative_to(source)) for p in sorted(source.rglob("*"))[:200])
-            chunks.append("\n\n## File listing\n")
-            chunks.append(listing)
-        return "".join(chunks), {"path": str(source), "kind": "directory", "files": [str(p.relative_to(source)) for p in files]}
-    raise FileNotFoundError(f"Local source not found: {source}")
+    return extract_source(str(source)).to_legacy()
 
 
 def read_source(source: str) -> tuple[str, dict[str, Any]]:
-    if source.startswith(("http://", "https://")):
-        return read_web(source)
-    return read_local(Path(source).expanduser())
+    return extract_source(source).to_legacy()
+
+
+def read_source_extraction(source: str):
+    return extract_source(source)
 
 
 def infer_source_type(source: str, text: str) -> str:

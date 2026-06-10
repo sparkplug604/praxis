@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "praxis-ktos"
-version = "0.2.0"
+version = "0.3.0"
 description = "Local-first RAG and agent skills framework for source-traceable agent memory."
 readme = "README.md"
 requires-python = ">=3.9"
@@ -43,6 +43,43 @@ classifiers = [
 ]
 
 [project.optional-dependencies]
+intake-basic = [
+  "pypdf",
+]
+intake-ocr = [
+  "pillow",
+  "pytesseract",
+]
+intake-office = [
+  "markitdown",
+]
+intake-stt = [
+  "faster-whisper",
+]
+intake-scenes = [
+  "scenedetect",
+]
+intake-diarization = [
+  "pyannote.audio",
+]
+intake-visual = [
+  "open_clip_torch",
+  "torch",
+]
+intake-media = [
+  "faster-whisper",
+  "pillow",
+  "pytesseract",
+]
+intake-full-media = [
+  "faster-whisper",
+  "pillow",
+  "pytesseract",
+  "scenedetect",
+  "pyannote.audio",
+  "open_clip_torch",
+  "torch",
+]
 reach = []
 agency = []
 hubspot = []
@@ -58,6 +95,9 @@ bigquery = [
 ]
 meta-ads = []
 all = [
+  "pypdf",
+  "markitdown",
+  "faster-whisper",
   "google-ads",
   "google-analytics-data",
   "google-analytics-admin",

@@ -5,13 +5,14 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
+from urllib.parse import urlparse
 
 from research_common import (
     DEFAULT_ROOT,
     connect,
     credibility_score,
     infer_source_type,
-    read_source,
+    read_source_extraction,
     register_capture,
     register_source,
     sha256_text,
@@ -38,7 +39,11 @@ def capture_source(
     db_path = root / "kg" / "skill_graph.sqlite"
     captures_root = root / "research" / "captures"
 
-    text, metadata = read_source(source)
+    extraction = read_source_extraction(source)
+    text, metadata = extraction.to_legacy()
+    if not text.strip():
+        warnings = ", ".join(extraction.warnings or metadata.get("intake_warnings", []))
+        raise RuntimeError(f"No searchable text extracted from {source}. {warnings}".strip())
     content_hash = sha256_text(text)
     resolved_source_type = source_type or infer_source_type(source, text)
     resolved_title = title or title_from_source(source, text)
@@ -51,8 +56,11 @@ def capture_source(
     raw_path = source_dir / f"{slug(capture_id)}.raw.txt"
     summary_path = source_dir / f"{slug(capture_id)}.summary.md"
     metadata_path = source_dir / f"{slug(capture_id)}.metadata.json"
+    artifact_path = source_dir / f"{slug(capture_id)}.artifact{artifact_suffix(source)}"
 
     raw_path.write_text(text, encoding="utf-8")
+    if extraction.artifact_bytes:
+        artifact_path.write_bytes(extraction.artifact_bytes)
     summary = summarize_text(text)
     summary_path.write_text(
         "\n".join(
@@ -85,7 +93,9 @@ def capture_source(
         "freshness_window_days": freshness_window_days,
         "raw_path": str(raw_path),
         "summary_path": str(summary_path),
+        "artifact_path": str(artifact_path) if extraction.artifact_bytes else "",
         "metadata": metadata,
+        "intake": extraction.to_metadata(),
     }
     write_json(metadata_path, metadata_record)
 
@@ -110,7 +120,12 @@ def capture_source(
             content_hash=content_hash,
             raw_path=str(raw_path),
             summary_path=str(summary_path),
-            metadata={"metadata_path": str(metadata_path), **metadata},
+            metadata={
+                "metadata_path": str(metadata_path),
+                "artifact_path": str(artifact_path) if extraction.artifact_bytes else "",
+                "intake": extraction.to_metadata(),
+                **metadata,
+            },
         )
         conflict_ids = scan_source_dedupe(connection, source_id=resolved_source_id, capture_id=capture_id)
 
@@ -121,6 +136,14 @@ def capture_source(
         "metadata_path": metadata_path,
         "conflict_ids": conflict_ids,
     }
+
+
+def artifact_suffix(source: str) -> str:
+    candidate = urlparse(source).path if source.startswith(("http://", "https://")) else source
+    suffix = Path(candidate).suffix.lower()
+    if 1 < len(suffix) <= 12 and all(char.isalnum() or char == "." for char in suffix):
+        return suffix
+    return ".bin"
 
 
 def main() -> int:

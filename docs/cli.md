@@ -137,6 +137,11 @@ praxis graph search "SkillGraph"
 Capture a source and auto-apply provisional graph memory:
 
 ```bash
+praxis intake inspect ./docs/source.pdf
+praxis intake doctor
+praxis intake convert ./call.mp4 --word-timestamps --diarize --include-units
+praxis intake keyframes ./webinar.mp4 --keyframe-strategy scene --ocr --visual-embeddings
+praxis intake cache list
 praxis ingest "https://example.com/source"
 ```
 

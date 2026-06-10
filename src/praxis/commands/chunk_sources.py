@@ -157,6 +157,14 @@ def source_type_for(path: Path, metadata: dict[str, Any]) -> str:
 
 
 def confidence_for(metadata: dict[str, Any]) -> str:
+    intake = metadata.get("intake") if isinstance(metadata.get("intake"), dict) else {}
+    parse_quality = intake.get("parse_quality") if isinstance(intake.get("parse_quality"), dict) else {}
+    score = parse_quality.get("score")
+    if isinstance(score, (int, float)):
+        if score >= 0.75:
+            return "high"
+        if score < 0.35:
+            return "low"
     score = metadata.get("credibility_score")
     if isinstance(score, int):
         if score >= 4:
@@ -301,6 +309,15 @@ def insert_chunk(connection, document: dict[str, Any], chunk: dict[str, Any], ch
         "previous_context": chunk.get("previous_context", ""),
         "overlap_chars": chunk.get("overlap_chars", 0),
     }
+    intake = document["metadata"].get("intake") if isinstance(document["metadata"].get("intake"), dict) else {}
+    if intake:
+        metadata["intake"] = {
+            "media_type": intake.get("media_type", ""),
+            "converter_name": intake.get("converter_name", ""),
+            "parse_quality": intake.get("parse_quality", {}),
+            "unit_counts": intake.get("unit_counts", {}),
+            "warnings": intake.get("warnings", []),
+        }
     connection.execute(
         """
         INSERT INTO semantic_chunks(

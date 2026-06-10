@@ -25,6 +25,7 @@ For agency/GTM evaluation, start with the [Agency GTM Evaluation Guide](docs/eva
 ## Highlights
 
 - **Turn useful sources into agent knowledge**: Core captures links, files, papers, docs, notes, directories, and selected watchlist hits with source metadata preserved.
+- **Convert sources before they poison memory**: Core detects source types, converts supported files into evidence units, records parse quality, and warns when extraction needs OCR or a stronger parser.
 - **Make agent memory traceable by default**: Core stores raw text, summaries, chunks, hashes, source IDs, confidence, graph links, and audit logs in local SQLite databases.
 - **Rank the best context first**: Core search combines semantic matching, keyword matching, SkillGraph links, freshness, trust, status, and conflict signals. `--explain` shows why each result appeared.
 - **Move fast without poisoning memory**: Core writes new captures into provisional SkillGraph memory, then lets you inspect, promote, deprecate, dedupe, or roll back changes.
@@ -217,6 +218,7 @@ The Praxis core is the Python package and CLI. Use `praxis --help` and `praxis <
 | Command Group | Purpose |
 | --- | --- |
 | `setup`, `demo`, `doctor`, `eval` | Get started, run module demos, and verify the local workspace. |
+| `intake` | Inspect and convert sources before capture/ingest. |
 | `capture`, `ingest`, `scan`, `refresh` | Bring source material into Praxis. |
 | `chunk`, `embed`, `search`, `graph`, `library` | Index and retrieve knowledge. |
 | `changes`, `conflicts`, `dedupe`, `rollback` | Inspect, resolve, merge, or undo memory changes. |

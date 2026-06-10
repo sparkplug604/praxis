@@ -7,6 +7,7 @@ This is the map for the Praxis documentation.
 - [Getting Started](getting-started.md): install, setup paths, demos, and first wins.
 - [Troubleshooting](troubleshooting.md): Windows/PATH issues, missing tables, credentials, and search setup.
 - [CLI Reference](cli.md): command groups and examples.
+- [Praxis Intake](modules/core/intake.md): source detection, file conversion, parse quality, and optional parser dependencies.
 
 ## Modules
 

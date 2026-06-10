@@ -6,6 +6,7 @@ It turns documents, research, web pages, local files, project notes, and lessons
 
 Core is where Praxis handles:
 
+- source detection and intake conversion;
 - source capture;
 - raw evidence preservation;
 - summaries and metadata;
@@ -34,17 +35,20 @@ Core is useful for:
 
 ```mermaid
 flowchart LR
-    A["Capture Source"] --> B["Archive Evidence"]
-    B --> C["Chunk + Embed"]
-    B --> D["SkillGraph Proposal"]
-    D --> E["Provisional Memory"]
-    C --> F["Hybrid Search"]
-    E --> F
-    F --> G["Agent Work"]
-    E --> H["Skill Export"]
+    A["Detect Source"] --> B["Convert Into Evidence Units"]
+    B --> C["Archive Evidence"]
+    C --> D["Chunk + Embed"]
+    C --> E["SkillGraph Proposal"]
+    E --> F["Provisional Memory"]
+    D --> G["Hybrid Search"]
+    F --> G
+    G --> H["Agent Work"]
+    F --> I["Skill Export"]
 ```
 
 Core does not treat captured text as automatically true. It stores the evidence, records how knowledge entered the system, and makes changes reversible.
+
+Intake runs before capture. It detects file type, chooses a converter, preserves converter metadata, and records parse-quality warnings. It can also create source-linked media evidence from transcripts, keyframes, OCR, speaker turns, and visual embeddings when optional local adapters are installed. See [Praxis Intake](intake.md).
 
 ## First Run
 
@@ -69,6 +73,7 @@ praxis search "what did this source teach us?" --explain
 
 | Command | What It Does |
 | --- | --- |
+| `praxis intake` | Inspects and converts sources before they enter memory. |
 | `praxis capture` | Captures a URL, file, or directory. |
 | `praxis ingest` | Captures a source and writes provisional SkillGraph memory. |
 | `praxis chunk` | Turns captured sources into searchable chunks. |

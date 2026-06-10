@@ -19,6 +19,7 @@ COMMANDS = {
     "init-graph": ("init_skill_graph.py", "Initialize the Praxis SkillGraph database."),
     "capture": ("research_source.py", "Capture a URL, file, or directory."),
     "ingest": ("ingest_source.py", "Capture a source and auto-apply a provisional graph update."),
+    "intake": ("intake.py", "Inspect and convert sources before capture/ingest."),
     "propose": ("propose_graph_update.py", "Create an inspectable graph proposal."),
     "apply": ("apply_graph_update.py", "Apply a graph proposal with an audit log."),
     "changes": ("graph_changes.py", "Inspect audited SkillGraph change sets."),

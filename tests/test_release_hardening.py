@@ -9,6 +9,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -17,6 +18,8 @@ REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "src"))
 
 from praxis.context_priority import score_context_priority
+from praxis.intake import extract_source
+from praxis.intake.registry import convert_bytes
 
 
 def copy_fixture(source: str, root: Path) -> None:
@@ -94,6 +97,20 @@ def write_source(root: Path) -> Path:
     return source
 
 
+def write_minimal_docx(path: Path, text: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    document_xml = f"""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:body>
+    <w:p><w:r><w:t>{text}</w:t></w:r></w:p>
+  </w:body>
+</w:document>
+"""
+    with zipfile.ZipFile(path, "w") as archive:
+        archive.writestr("[Content_Types].xml", "<Types></Types>")
+        archive.writestr("word/document.xml", document_xml)
+
+
 def change_set_from(output: str) -> str:
     match = re.search(r"change_set_id:\s*(chg:[^\s]+)", output)
     if not match:
@@ -109,6 +126,282 @@ def conflict_from(output: str, conflict_type: str) -> str:
 
 
 class ReleaseHardeningTests(unittest.TestCase):
+    def test_intake_extracts_structured_csv_units(self) -> None:
+        with tempfile.TemporaryDirectory() as tempdir:
+            root = make_root(tempdir)
+            source = root / "notes" / "gtm-segments.csv"
+            source.write_text(
+                "segment,region,title\ntrade schools,Pacific Northwest,Director of Student Housing\ncommunity colleges,South,VP Student Services\n",
+                encoding="utf-8",
+            )
+
+            result = extract_source(str(source))
+
+            self.assertEqual("text/csv", result.media_type)
+            self.assertEqual("csv", result.converter_name)
+            self.assertEqual(1, result.unit_counts["table"])
+            self.assertEqual(2, result.unit_counts["table_row"])
+            self.assertGreater(result.parse_quality.score, 0.4)
+            self.assertIn("Director of Student Housing", result.text)
+            self.assertTrue(any(unit.structured_data for unit in result.units if unit.unit_type == "table_row"))
+
+    def test_intake_cli_inspects_and_converts_docx(self) -> None:
+        with tempfile.TemporaryDirectory() as tempdir:
+            root = make_root(tempdir)
+            source = root / "notes" / "brief.docx"
+            write_minimal_docx(source, "Praxis intake preserves document evidence.")
+
+            inspected = run_praxis(root, "intake", "inspect", str(source))
+            self.assertIn("converter: docx-office", inspected.stdout)
+
+            converted = run_praxis(root, "intake", "convert", str(source))
+            self.assertIn("converter: docx", converted.stdout)
+            self.assertIn("parse_quality:", converted.stdout)
+
+    def test_intake_uses_video_transcript_sidecar(self) -> None:
+        with tempfile.TemporaryDirectory() as tempdir:
+            root = make_root(tempdir)
+            video = root / "notes" / "demo.mp4"
+            video.write_bytes(b"not a real video but enough for media detection")
+            sidecar = root / "notes" / "demo.transcript.vtt"
+            sidecar.write_text(
+                "WEBVTT\n\n00:00:01.000 --> 00:00:04.000\nPraxis can ingest transcript sidecars.\n\n00:00:05.000 --> 00:00:08.000\nThe source media stays attached.\n",
+                encoding="utf-8",
+            )
+
+            inspected = run_praxis(root, "intake", "inspect", str(video))
+            self.assertIn("converter: video-transcript-sidecar", inspected.stdout)
+
+            result = extract_source(str(video))
+            self.assertEqual("video-transcript-sidecar", result.converter_name)
+            self.assertEqual(2, result.unit_counts["video_transcript_segment"])
+            self.assertIn("Praxis can ingest transcript sidecars", result.text)
+            self.assertEqual(str(sidecar), result.metadata["sidecar_path"])
+
+    def test_intake_media_without_stt_archives_metadata_with_warning(self) -> None:
+        with tempfile.TemporaryDirectory() as tempdir:
+            root = make_root(tempdir)
+            video = root / "notes" / "demo.mp4"
+            video.write_bytes(b"not a real video but enough for media detection")
+
+            result = extract_source(str(video))
+
+            self.assertEqual("video-media", result.converter_name)
+            self.assertEqual(1, result.unit_counts["video_asset"])
+            self.assertIn("Media kind: video", result.text)
+            self.assertTrue(any("no_transcript_extracted" in warning for warning in result.warnings))
+            self.assertLess(result.parse_quality.score, 0.4)
+
+    def test_intake_fake_stt_generates_timestamped_units_and_cache(self) -> None:
+        with tempfile.TemporaryDirectory() as tempdir:
+            root = make_root(tempdir)
+            audio = root / "notes" / "call.wav"
+            body = b"fake wav body"
+            audio.write_bytes(body)
+            calls = {"count": 0}
+
+            def fake_stt(_source_ref: str, _options: dict) -> tuple[str, dict, list[str]]:
+                calls["count"] += 1
+                return (
+                    "WEBVTT\n\n00:00:01.000 --> 00:00:03.000\nPraxis can generate transcript evidence.\n",
+                    {"stt_model": "fake-model"},
+                    ["fake_stt_used"],
+                )
+
+            previous_root = os.environ.get("PRAXIS_ROOT")
+            os.environ["PRAXIS_ROOT"] = str(root)
+            try:
+                first = convert_bytes(
+                    str(audio),
+                    body,
+                    media_type="audio/wav",
+                    metadata={"path": str(audio), "_stt_adapter": fake_stt, "_stt_model": "fake-model"},
+                )
+                second = convert_bytes(
+                    str(audio),
+                    body,
+                    media_type="audio/wav",
+                    metadata={"path": str(audio), "_stt_model": "fake-model"},
+                )
+            finally:
+                if previous_root is None:
+                    os.environ.pop("PRAXIS_ROOT", None)
+                else:
+                    os.environ["PRAXIS_ROOT"] = previous_root
+
+            self.assertEqual(1, calls["count"])
+            self.assertEqual("audio-stt", first.converter_name)
+            self.assertEqual("audio-stt", second.converter_name)
+            self.assertEqual(1, first.unit_counts["audio_transcript_segment"])
+            self.assertIn("Praxis can generate transcript evidence", second.text)
+            self.assertEqual("hit", second.metadata["transcript_cache_status"])
+            self.assertTrue(Path(second.metadata["transcript_cache_path"]).exists())
+
+            listed = run_praxis(root, "intake", "cache", "list")
+            self.assertIn("[transcripts]", listed.stdout)
+            self.assertIn("text_chars=", listed.stdout)
+            shown = run_praxis(root, "intake", "cache", "show", Path(second.metadata["transcript_cache_path"]).stem)
+            self.assertIn("kind: transcripts", shown.stdout)
+            refused = run_praxis(root, "intake", "cache", "clear", "--kind", "transcripts", check=False)
+            self.assertEqual(2, refused.returncode, refused.stdout)
+            cleared = run_praxis(root, "intake", "cache", "clear", "--kind", "transcripts", "--yes")
+            self.assertIn("Deleted cache entries: 1", cleared.stdout)
+
+    def test_intake_word_timestamps_and_diarization_attach_to_transcript_units(self) -> None:
+        with tempfile.TemporaryDirectory() as tempdir:
+            root = make_root(tempdir)
+            audio = root / "notes" / "interview.wav"
+            body = b"fake interview body"
+            audio.write_bytes(body)
+
+            def fake_stt(_source_ref: str, _options: dict) -> tuple[str, dict, list[str]]:
+                return (
+                    "WEBVTT\n\n00:00:01.000 --> 00:00:03.000\nWe should preserve media evidence.\n",
+                    {
+                        "stt_model": "fake-model",
+                        "word_timestamps": [
+                            {"word": "We", "start": 1.0, "end": 1.2, "probability": 0.99},
+                            {"word": "should", "start": 1.21, "end": 1.6, "probability": 0.98},
+                        ],
+                    },
+                    [],
+                )
+
+            def fake_diarization(_source_ref: str, _metadata: dict) -> tuple[list[dict], dict, list[str]]:
+                return ([{"speaker_id": "speaker_a", "start": 0.5, "end": 3.5, "confidence": "medium"}], {"diarization_model": "fake"}, [])
+
+            previous_root = os.environ.get("PRAXIS_ROOT")
+            os.environ["PRAXIS_ROOT"] = str(root)
+            try:
+                result = convert_bytes(
+                    str(audio),
+                    body,
+                    media_type="audio/wav",
+                    metadata={
+                        "path": str(audio),
+                        "_stt_adapter": fake_stt,
+                        "_stt_model": "fake-word-model",
+                        "_word_timestamps": True,
+                        "_diarize": True,
+                        "_diarization_adapter": fake_diarization,
+                    },
+                )
+            finally:
+                if previous_root is None:
+                    os.environ.pop("PRAXIS_ROOT", None)
+                else:
+                    os.environ["PRAXIS_ROOT"] = previous_root
+
+            transcript = next(unit for unit in result.units if unit.unit_type == "audio_transcript_segment")
+            self.assertEqual("speaker_a", transcript.structured_data["speaker_id"])
+            self.assertEqual("We", transcript.structured_data["word_timestamps"][0]["word"])
+            self.assertEqual(1, result.unit_counts["speaker_turn"])
+
+    def test_intake_keyframes_ocr_and_visual_embeddings_use_optional_adapters(self) -> None:
+        with tempfile.TemporaryDirectory() as tempdir:
+            root = make_root(tempdir)
+            video = root / "notes" / "demo.mp4"
+            body = b"fake video body"
+            video.write_bytes(body)
+
+            def fake_keyframes(_source_ref: str, _options: dict) -> tuple[list[dict], dict, list[str]]:
+                return (
+                    [{"timestamp": 2.5, "bytes": b"fake jpg bytes", "extension": ".jpg", "metadata": {"scene_id": "scene_1"}}],
+                    {
+                        "keyframe_adapter": "fake",
+                        "scenes": [
+                            {"start": 1.0, "end": 4.0, "detector": "fake-scene", "metadata": {"midpoint": 2.5}}
+                        ],
+                    },
+                    [],
+                )
+
+            def fake_ocr(_source_ref: str, _image_bytes: bytes, _metadata: dict) -> tuple[str, dict, list[str]]:
+                return ("Slide says retention dashboard and student housing.", {"ocr_engine": "fake"}, [])
+
+            def fake_visual(_source_ref: str, _image_bytes: bytes, _metadata: dict) -> tuple[list[float], dict, list[str]]:
+                return ([0.1, 0.2, 0.3], {"embedding_model": "fake-clip"}, [])
+
+            previous_root = os.environ.get("PRAXIS_ROOT")
+            os.environ["PRAXIS_ROOT"] = str(root)
+            try:
+                result = convert_bytes(
+                    str(video),
+                    body,
+                    media_type="video/mp4",
+                    metadata={
+                        "path": str(video),
+                        "_extract_keyframes": True,
+                        "_ocr_keyframes": True,
+                        "_visual_embeddings": True,
+                        "_keyframe_adapter": fake_keyframes,
+                        "_ocr_adapter": fake_ocr,
+                        "_visual_embedding_adapter": fake_visual,
+                    },
+                )
+            finally:
+                if previous_root is None:
+                    os.environ.pop("PRAXIS_ROOT", None)
+                else:
+                    os.environ["PRAXIS_ROOT"] = previous_root
+
+            self.assertEqual("video-keyframes", result.converter_name)
+            self.assertEqual(1, result.unit_counts["video_scene"])
+            self.assertEqual(1, result.unit_counts["video_keyframe"])
+            self.assertEqual(1, result.unit_counts["video_frame_text"])
+            self.assertEqual(1, result.unit_counts["visual_embedding"])
+            self.assertIn("retention dashboard", result.text)
+            scene = next(unit for unit in result.units if unit.unit_type == "video_scene")
+            self.assertEqual("derived", scene.structured_data["evidence_lifecycle"])
+            self.assertEqual("fake-scene", scene.structured_data["detector"])
+            frame = next(unit for unit in result.units if unit.unit_type == "video_keyframe")
+            self.assertEqual("custom", frame.structured_data["adapter_name"])
+            self.assertIn("not full video understanding", frame.structured_data["confidence_reason"])
+            visual = next(unit for unit in result.units if unit.unit_type == "visual_embedding")
+            self.assertEqual([0.1, 0.2, 0.3], visual.structured_data["vector"])
+
+    def test_intake_uses_image_ocr_sidecar(self) -> None:
+        with tempfile.TemporaryDirectory() as tempdir:
+            root = make_root(tempdir)
+            image = root / "notes" / "diagram.png"
+            image.write_bytes(b"not a real image but enough for media detection")
+            sidecar = root / "notes" / "diagram.ocr.txt"
+            sidecar.write_text("Diagram text extracted by an external OCR step.", encoding="utf-8")
+
+            result = extract_source(str(image))
+
+            self.assertEqual("image-ocr-sidecar", result.converter_name)
+            self.assertEqual(1, result.unit_counts["image_text"])
+            self.assertIn("external OCR", result.text)
+            self.assertEqual(str(sidecar), result.metadata["sidecar_path"])
+
+    def test_capture_records_intake_metadata(self) -> None:
+        with tempfile.TemporaryDirectory() as tempdir:
+            root = make_root(tempdir)
+            init_root(root)
+            source = root / "notes" / "segments.csv"
+            source.write_text("segment,signal\ntrade schools,housing\n", encoding="utf-8")
+
+            run_praxis(root, "capture", str(source), "--source-type", "docs")
+
+            with sqlite3.connect(root / "kg" / "skill_graph.sqlite") as connection:
+                connection.row_factory = sqlite3.Row
+                row = connection.execute("SELECT metadata_json FROM source_captures ORDER BY created_at DESC LIMIT 1").fetchone()
+            metadata = json.loads(row["metadata_json"])
+            self.assertEqual("csv", metadata["intake"]["converter_name"])
+            self.assertEqual("text/csv", metadata["intake"]["media_type"])
+            self.assertIn("parse_quality", metadata["intake"])
+            self.assertTrue(Path(metadata["artifact_path"]).exists())
+
+    def test_intake_doctor_reports_optional_pdf_dependency(self) -> None:
+        with tempfile.TemporaryDirectory() as tempdir:
+            root = make_root(tempdir)
+
+            result = run_praxis(root, "intake", "doctor")
+
+            self.assertIn("Praxis intake converters:", result.stdout)
+            self.assertIn("pdf-pypdf:", result.stdout)
+
     def test_context_priority_penalizes_stale_or_conflicted_context(self) -> None:
         row = {"confidence": "high", "status": "active"}
         fresh_source = {

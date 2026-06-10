@@ -115,6 +115,14 @@ def chunk_graph_links(row: sqlite3.Row) -> list[str]:
     return [str(item) for item in value]
 
 
+def chunk_metadata(row: sqlite3.Row) -> dict:
+    try:
+        value = json.loads(row["metadata_json"] or "{}")
+    except (KeyError, json.JSONDecodeError, TypeError):
+        return {}
+    return value if isinstance(value, dict) else {}
+
+
 def combine_hits(vector_results: list[dict], keyword_results: list[dict], nodes: list[sqlite3.Row], weights: dict[str, float]) -> list[dict]:
     combined: dict[str, dict] = {}
     max_vector = max([hit["score"] for hit in vector_results], default=1.0) or 1.0
@@ -240,6 +248,17 @@ def print_explanation(item: dict, nodes: list[sqlite3.Row]) -> None:
         print(f"   capture_id: {row['capture_id']}")
     if row["confidence"]:
         print(f"   confidence: {row['confidence']}")
+    metadata = chunk_metadata(row)
+    intake = metadata.get("intake") if isinstance(metadata.get("intake"), dict) else {}
+    if intake:
+        parse_quality = intake.get("parse_quality") if isinstance(intake.get("parse_quality"), dict) else {}
+        score = parse_quality.get("score")
+        converter = intake.get("converter_name") or ""
+        media_type = intake.get("media_type") or ""
+        print(f"   intake: converter={converter}; media_type={media_type}; parse_quality={score}")
+        warnings = intake.get("warnings") or parse_quality.get("warnings") or []
+        if warnings:
+            print(f"   intake_warnings: {'; '.join(str(warning) for warning in warnings[:5])}")
     links = chunk_graph_links(row)
     if links:
         print(f"   graph_links: {', '.join(links[:8])}")
