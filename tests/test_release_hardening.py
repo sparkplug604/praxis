@@ -23,27 +23,41 @@ from praxis.intake.registry import convert_bytes
 
 
 def copy_fixture(source: str, root: Path) -> None:
-    src = REPO / source
-    dst = root / source
+    src = REPO / "bootstrap" / source
+    if not src.exists():
+        src = REPO / source
+    dst = root / "bootstrap" / source if source in {
+        "db/schema.sql",
+        "kg/schema.sql",
+        "kg/seed_graph.json",
+        "sources/seed_sources.json",
+    } else root / source
     dst.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(src, dst)
+
+
+def ws(root: Path, *parts: str) -> Path:
+    return root.joinpath("workspace", *parts)
 
 
 def make_root(tempdir: str) -> Path:
     root = Path(tempdir)
     for path in [
-        "db",
-        "kg",
-        "research/captures",
-        "research/proposals",
-        "research/applied",
-        "research/rejected",
-        "research/inbox",
-        "sources",
-        "vectors",
-        "watchlists",
-        "exports",
-        "notes",
+        "bootstrap/db",
+        "bootstrap/kg",
+        "bootstrap/sources",
+        "workspace/db",
+        "workspace/kg",
+        "workspace/research/captures",
+        "workspace/research/proposals",
+        "workspace/research/applied",
+        "workspace/research/rejected",
+        "workspace/research/inbox",
+        "workspace/sources",
+        "workspace/vectors",
+        "workspace/watchlists",
+        "workspace/exports",
+        "workspace/notes",
     ]:
         (root / path).mkdir(parents=True, exist_ok=True)
     for fixture in [
@@ -80,7 +94,7 @@ def init_root(root: Path) -> None:
 
 
 def write_source(root: Path) -> Path:
-    source = root / "notes" / "semantic-contracts.md"
+    source = ws(root, "notes", "semantic-contracts.md")
     source.write_text(
         "\n".join(
             [
@@ -129,7 +143,7 @@ class ReleaseHardeningTests(unittest.TestCase):
     def test_intake_extracts_structured_csv_units(self) -> None:
         with tempfile.TemporaryDirectory() as tempdir:
             root = make_root(tempdir)
-            source = root / "notes" / "gtm-segments.csv"
+            source = ws(root, "notes", "gtm-segments.csv")
             source.write_text(
                 "segment,region,title\ntrade schools,Pacific Northwest,Director of Student Housing\ncommunity colleges,South,VP Student Services\n",
                 encoding="utf-8",
@@ -148,7 +162,7 @@ class ReleaseHardeningTests(unittest.TestCase):
     def test_intake_cli_inspects_and_converts_docx(self) -> None:
         with tempfile.TemporaryDirectory() as tempdir:
             root = make_root(tempdir)
-            source = root / "notes" / "brief.docx"
+            source = ws(root, "notes", "brief.docx")
             write_minimal_docx(source, "Praxis intake preserves document evidence.")
 
             inspected = run_praxis(root, "intake", "inspect", str(source))
@@ -161,9 +175,9 @@ class ReleaseHardeningTests(unittest.TestCase):
     def test_intake_uses_video_transcript_sidecar(self) -> None:
         with tempfile.TemporaryDirectory() as tempdir:
             root = make_root(tempdir)
-            video = root / "notes" / "demo.mp4"
+            video = ws(root, "notes", "demo.mp4")
             video.write_bytes(b"not a real video but enough for media detection")
-            sidecar = root / "notes" / "demo.transcript.vtt"
+            sidecar = ws(root, "notes", "demo.transcript.vtt")
             sidecar.write_text(
                 "WEBVTT\n\n00:00:01.000 --> 00:00:04.000\nPraxis can ingest transcript sidecars.\n\n00:00:05.000 --> 00:00:08.000\nThe source media stays attached.\n",
                 encoding="utf-8",
@@ -181,7 +195,7 @@ class ReleaseHardeningTests(unittest.TestCase):
     def test_intake_media_without_stt_archives_metadata_with_warning(self) -> None:
         with tempfile.TemporaryDirectory() as tempdir:
             root = make_root(tempdir)
-            video = root / "notes" / "demo.mp4"
+            video = ws(root, "notes", "demo.mp4")
             video.write_bytes(b"not a real video but enough for media detection")
 
             result = extract_source(str(video))
@@ -195,7 +209,7 @@ class ReleaseHardeningTests(unittest.TestCase):
     def test_intake_fake_stt_generates_timestamped_units_and_cache(self) -> None:
         with tempfile.TemporaryDirectory() as tempdir:
             root = make_root(tempdir)
-            audio = root / "notes" / "call.wav"
+            audio = ws(root, "notes", "call.wav")
             body = b"fake wav body"
             audio.write_bytes(body)
             calls = {"count": 0}
@@ -250,7 +264,7 @@ class ReleaseHardeningTests(unittest.TestCase):
     def test_intake_word_timestamps_and_diarization_attach_to_transcript_units(self) -> None:
         with tempfile.TemporaryDirectory() as tempdir:
             root = make_root(tempdir)
-            audio = root / "notes" / "interview.wav"
+            audio = ws(root, "notes", "interview.wav")
             body = b"fake interview body"
             audio.write_bytes(body)
 
@@ -300,7 +314,7 @@ class ReleaseHardeningTests(unittest.TestCase):
     def test_intake_keyframes_ocr_and_visual_embeddings_use_optional_adapters(self) -> None:
         with tempfile.TemporaryDirectory() as tempdir:
             root = make_root(tempdir)
-            video = root / "notes" / "demo.mp4"
+            video = ws(root, "notes", "demo.mp4")
             body = b"fake video body"
             video.write_bytes(body)
 
@@ -363,9 +377,9 @@ class ReleaseHardeningTests(unittest.TestCase):
     def test_intake_uses_image_ocr_sidecar(self) -> None:
         with tempfile.TemporaryDirectory() as tempdir:
             root = make_root(tempdir)
-            image = root / "notes" / "diagram.png"
+            image = ws(root, "notes", "diagram.png")
             image.write_bytes(b"not a real image but enough for media detection")
-            sidecar = root / "notes" / "diagram.ocr.txt"
+            sidecar = ws(root, "notes", "diagram.ocr.txt")
             sidecar.write_text("Diagram text extracted by an external OCR step.", encoding="utf-8")
 
             result = extract_source(str(image))
@@ -379,12 +393,12 @@ class ReleaseHardeningTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tempdir:
             root = make_root(tempdir)
             init_root(root)
-            source = root / "notes" / "segments.csv"
+            source = ws(root, "notes", "segments.csv")
             source.write_text("segment,signal\ntrade schools,housing\n", encoding="utf-8")
 
             run_praxis(root, "capture", str(source), "--source-type", "docs")
 
-            with sqlite3.connect(root / "kg" / "skill_graph.sqlite") as connection:
+            with sqlite3.connect(ws(root, "kg", "skill_graph.sqlite")) as connection:
                 connection.row_factory = sqlite3.Row
                 row = connection.execute("SELECT metadata_json FROM source_captures ORDER BY created_at DESC LIMIT 1").fetchone()
             metadata = json.loads(row["metadata_json"])
@@ -507,7 +521,7 @@ class ReleaseHardeningTests(unittest.TestCase):
     def test_auto_chunking_preserves_document_structure_metadata(self) -> None:
         with tempfile.TemporaryDirectory() as tempdir:
             root = make_root(tempdir)
-            source = root / "notes" / "production-rag.md"
+            source = ws(root, "notes", "production-rag.md")
             source.write_text(
                 "\n".join(
                     [
@@ -550,7 +564,7 @@ class ReleaseHardeningTests(unittest.TestCase):
                 "80",
             )
 
-            with sqlite3.connect(root / "vectors" / "semantic_index.sqlite") as connection:
+            with sqlite3.connect(ws(root, "vectors", "semantic_index.sqlite")) as connection:
                 connection.row_factory = sqlite3.Row
                 rows = connection.execute(
                     """
@@ -612,8 +626,8 @@ class ReleaseHardeningTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tempdir:
             root = make_root(tempdir)
             init_root(root)
-            first = root / "research" / "proposals" / "use-sqlite.json"
-            second = root / "research" / "proposals" / "avoid-sqlite.json"
+            first = ws(root, "research", "proposals", "use-sqlite.json")
+            second = ws(root, "research", "proposals", "avoid-sqlite.json")
             first.write_text(
                 json.dumps(
                     {
@@ -670,8 +684,8 @@ class ReleaseHardeningTests(unittest.TestCase):
     def test_duplicate_entity_merge_and_split_are_reversible(self) -> None:
         with tempfile.TemporaryDirectory() as tempdir:
             root = make_root(tempdir)
-            first = root / "notes" / "jack.md"
-            second = root / "notes" / "dr-jack.md"
+            first = ws(root, "notes", "jack.md")
+            second = ws(root, "notes", "dr-jack.md")
             first.write_text("# Jack Abbott\n\nJack Abbott is an example entity for dedupe testing.\n", encoding="utf-8")
             second.write_text("# Dr. Jack Abbott\n\nDr. Jack Abbott is the same example entity for dedupe testing.\n", encoding="utf-8")
 
@@ -683,7 +697,7 @@ class ReleaseHardeningTests(unittest.TestCase):
             merged = run_praxis(root, "dedupe", "merge", conflict_id, "--canonical", "external:jack-abbott")
             merge_change_set = change_set_from(merged.stdout)
 
-            with sqlite3.connect(root / "kg" / "skill_graph.sqlite") as connection:
+            with sqlite3.connect(ws(root, "kg", "skill_graph.sqlite")) as connection:
                 connection.row_factory = sqlite3.Row
                 row = connection.execute("SELECT status FROM nodes WHERE id = 'external:dr-jack-abbott'").fetchone()
                 self.assertEqual("merged", row["status"])
@@ -691,10 +705,53 @@ class ReleaseHardeningTests(unittest.TestCase):
             split = run_praxis(root, "dedupe", "split", merge_change_set)
             self.assertIn("Reverted dedupe merge", split.stdout)
             self.assertIn("Reopened dedupe conflicts: 1", split.stdout)
-            with sqlite3.connect(root / "kg" / "skill_graph.sqlite") as connection:
+            with sqlite3.connect(ws(root, "kg", "skill_graph.sqlite")) as connection:
                 connection.row_factory = sqlite3.Row
                 row = connection.execute("SELECT status FROM nodes WHERE id = 'external:dr-jack-abbott'").fetchone()
                 self.assertEqual("provisional", row["status"])
+
+    def test_bootstrap_assets_initialize_workspace_databases(self) -> None:
+        with tempfile.TemporaryDirectory() as tempdir:
+            root = make_root(tempdir)
+            run_praxis(root, "init-db")
+            run_praxis(root, "init-graph")
+
+            self.assertTrue(ws(root, "db", "praxis.sqlite").exists())
+            self.assertTrue(ws(root, "kg", "skill_graph.sqlite").exists())
+
+    def test_migrate_workspace_plan_and_apply_do_not_overwrite(self) -> None:
+        with tempfile.TemporaryDirectory() as tempdir:
+            root = Path(tempdir)
+            legacy_file = root / "research" / "captures" / "legacy.raw.txt"
+            legacy_file.parent.mkdir(parents=True, exist_ok=True)
+            legacy_file.write_text("legacy capture", encoding="utf-8")
+            target_file = ws(root, "research", "captures", "existing.raw.txt")
+            target_file.parent.mkdir(parents=True, exist_ok=True)
+            target_file.write_text("keep me", encoding="utf-8")
+            conflicting_legacy = root / "research" / "captures" / "existing.raw.txt"
+            conflicting_legacy.write_text("do not overwrite", encoding="utf-8")
+
+            plan = run_praxis(root, "migrate-workspace", "--plan")
+            self.assertIn("move: research/captures/legacy.raw.txt", plan.stdout)
+            self.assertIn("skip: research/captures/existing.raw.txt", plan.stdout)
+            self.assertTrue(legacy_file.exists())
+
+            applied = run_praxis(root, "migrate-workspace", "--apply")
+            self.assertIn("applied: 1 move(s), 1 skip(s)", applied.stdout)
+            self.assertTrue(ws(root, "research", "captures", "legacy.raw.txt").exists())
+            self.assertEqual("keep me", target_file.read_text(encoding="utf-8"))
+            self.assertTrue(conflicting_legacy.exists())
+
+    def test_workspace_generated_databases_are_git_ignored(self) -> None:
+        result = subprocess.run(
+            ["git", "check-ignore", "workspace/db/praxis.sqlite", "workspace/kg/skill_graph.sqlite", "workspace/vectors/semantic_index.sqlite"],
+            cwd=REPO,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            check=False,
+        )
+        self.assertEqual(0, result.returncode, result.stdout)
 
 
 if __name__ == "__main__":

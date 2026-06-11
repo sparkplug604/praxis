@@ -9,10 +9,10 @@ from collections import deque
 from pathlib import Path
 
 from graph_audit import LIVE_STATUSES, ensure_audit_schema
-from praxis.paths import default_root
+from praxis.paths import default_root, kg_dir
 
 
-DEFAULT_DB = default_root() / "kg" / "skill_graph.sqlite"
+DEFAULT_DB = kg_dir(default_root()) / "skill_graph.sqlite"
 
 
 def connect(db_path: Path) -> sqlite3.Connection:

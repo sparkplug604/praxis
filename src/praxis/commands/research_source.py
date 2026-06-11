@@ -24,6 +24,7 @@ from research_common import (
 )
 from conflict_ledger import scan_source_dedupe
 from init_skill_graph import ensure_skill_graph_initialized
+from praxis.paths import kg_dir, research_dir
 
 
 def capture_source(
@@ -36,8 +37,8 @@ def capture_source(
     freshness_window_days: int = 30,
     notes: str = "",
 ) -> dict:
-    db_path = root / "kg" / "skill_graph.sqlite"
-    captures_root = root / "research" / "captures"
+    db_path = kg_dir(root) / "skill_graph.sqlite"
+    captures_root = research_dir(root) / "captures"
 
     extraction = read_source_extraction(source)
     text, metadata = extraction.to_legacy()

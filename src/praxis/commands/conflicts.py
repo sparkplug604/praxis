@@ -5,9 +5,9 @@ from __future__ import annotations
 
 import argparse
 import json
-from pathlib import Path
 
 from conflict_ledger import ensure_conflict_schema, scan_change_set, utc_now
+from praxis.paths import kg_dir
 from research_common import DEFAULT_ROOT, connect
 
 
@@ -22,7 +22,7 @@ def print_conflict(row) -> None:
 
 
 def cmd_list(args: argparse.Namespace) -> int:
-    db_path = Path(args.root) / "kg" / "skill_graph.sqlite"
+    db_path = kg_dir(args.root) / "skill_graph.sqlite"
     with connect(db_path) as connection:
         ensure_conflict_schema(connection)
         clauses = []
@@ -56,7 +56,7 @@ def cmd_list(args: argparse.Namespace) -> int:
 
 
 def cmd_show(args: argparse.Namespace) -> int:
-    db_path = Path(args.root) / "kg" / "skill_graph.sqlite"
+    db_path = kg_dir(args.root) / "skill_graph.sqlite"
     with connect(db_path) as connection:
         ensure_conflict_schema(connection)
         row = connection.execute("SELECT * FROM conflict_records WHERE id = ?", (args.conflict,)).fetchone()
@@ -92,7 +92,7 @@ def cmd_show(args: argparse.Namespace) -> int:
 
 
 def cmd_resolve(args: argparse.Namespace) -> int:
-    db_path = Path(args.root) / "kg" / "skill_graph.sqlite"
+    db_path = kg_dir(args.root) / "skill_graph.sqlite"
     with connect(db_path) as connection:
         ensure_conflict_schema(connection)
         row = connection.execute("SELECT id FROM conflict_records WHERE id = ?", (args.conflict,)).fetchone()
@@ -118,7 +118,7 @@ def cmd_resolve(args: argparse.Namespace) -> int:
 
 
 def cmd_scan(args: argparse.Namespace) -> int:
-    db_path = Path(args.root) / "kg" / "skill_graph.sqlite"
+    db_path = kg_dir(args.root) / "skill_graph.sqlite"
     with connect(db_path) as connection:
         conflicts = scan_change_set(connection, args.change_set, phase="manual-scan")
     if conflicts:
@@ -162,4 +162,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

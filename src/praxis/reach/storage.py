@@ -10,6 +10,9 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
+from praxis.paths import agency_dir as praxis_agency_dir
+from praxis.paths import reach_dir as praxis_reach_dir
+
 try:  # pragma: no cover - exercised on Unix in CI/local development.
     import fcntl
 except ImportError:  # pragma: no cover - Windows fallback.
@@ -81,11 +84,11 @@ def _unlock_file(lock_file) -> None:
 
 
 def reach_dir(root: Path) -> Path:
-    return root / "reach"
+    return praxis_reach_dir(root)
 
 
 def agency_dir(root: Path) -> Path:
-    return root / "agency"
+    return praxis_agency_dir(root)
 
 
 def lifecycle_dir(root: Path) -> Path:

@@ -9,12 +9,13 @@ import sys
 from pathlib import Path
 
 from . import __version__
-from .paths import commands_dir, default_root
+from .paths import commands_dir, default_root, ensure_workspace_dirs
 
 
 COMMANDS = {
     "bootstrap": ("__bootstrap__", "Initialize DBs, graph, chunks, and local embeddings for a fresh checkout."),
     "doctor": ("skill_doctor.py", "Healthcheck a Praxis checkout."),
+    "migrate-workspace": ("migrate_workspace.py", "Move legacy root runtime data into workspace/ safely."),
     "init-db": ("init_agentic_db.py", "Initialize the relational Praxis database."),
     "init-graph": ("init_skill_graph.py", "Initialize the Praxis SkillGraph database."),
     "capture": ("research_source.py", "Capture a URL, file, or directory."),
@@ -89,6 +90,7 @@ def run_script(script_name: str, args: list[str], root: Path) -> int:
 
 
 def bootstrap(root: Path) -> int:
+    ensure_workspace_dirs(root)
     steps = [
         ("init-db", ["init_agentic_db.py", []]),
         ("init-graph", ["init_skill_graph.py", []]),

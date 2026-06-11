@@ -7,7 +7,7 @@ import argparse
 from pathlib import Path
 
 from praxis.cli import main as praxis_main
-from praxis.paths import default_root
+from praxis.paths import default_root, research_dir
 
 
 MODULES = {
@@ -47,7 +47,7 @@ def run_step(root: Path, label: str, args: list[str]) -> int:
 
 
 def write_core_demo_source(root: Path) -> Path:
-    path = root / "research" / "demo_sources" / "praxis-core-demo.md"
+    path = research_dir(root) / "demo_sources" / "praxis-core-demo.md"
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(CORE_SOURCE, encoding="utf-8")
     return path

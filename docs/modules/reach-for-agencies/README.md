@@ -57,7 +57,7 @@ It does not prove live production extraction across every CRM, ads platform, or 
 The generated capsule lives in:
 
 ```text
-agency/clients/<client-id>/
+workspace/agency/clients/<client-id>/
   client.json
   systems.json
   field_map.json

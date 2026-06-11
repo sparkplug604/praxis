@@ -5,8 +5,8 @@ from __future__ import annotations
 
 import argparse
 import datetime as dt
-from pathlib import Path
 
+from praxis.paths import kg_dir
 from research_common import DEFAULT_ROOT, connect, utc_now
 
 
@@ -31,7 +31,7 @@ def main() -> int:
     parser.add_argument("--limit", type=int, default=50)
     args = parser.parse_args()
 
-    db_path = Path(args.root) / "kg" / "skill_graph.sqlite"
+    db_path = kg_dir(args.root) / "skill_graph.sqlite"
     now = dt.datetime.now(dt.UTC)
     params: list[object] = []
     topic_clause = ""

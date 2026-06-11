@@ -9,6 +9,7 @@ import sqlite3
 from pathlib import Path
 
 from research_common import DEFAULT_ROOT, connect, read_json, sha256_text, slug, summarize_text, utc_now, write_json
+from praxis.paths import kg_dir, research_dir
 
 
 CONCEPT_KEYWORDS = [
@@ -131,8 +132,8 @@ def build_graph_proposal(
     proposal_status: str = "proposed",
     graph_status: str = "provisional",
 ) -> tuple[Path, dict]:
-    db_path = root / "kg" / "skill_graph.sqlite"
-    proposals_root = root / "research" / "proposals"
+    db_path = kg_dir(root) / "skill_graph.sqlite"
+    proposals_root = research_dir(root) / "proposals"
 
     with connect(db_path) as connection:
         capture, source = capture_from_db(connection, capture_ref)

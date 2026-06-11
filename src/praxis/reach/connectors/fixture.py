@@ -9,13 +9,14 @@ from .base import ConnectorCheck, ConnectorResult
 from .mock import MockAdsConnector, MockCRMConnector
 from praxis.reach.manifests import QueryManifest
 from praxis.reach.models import ClientCapsule
+from praxis.reach.storage import fixtures_dir
 
 
 def fixture_path(params: dict[str, Any], client_id: str, provider: str) -> Path | None:
     root = params.get("root")
     if not root:
         return None
-    path = Path(str(root)) / "reach" / "fixtures" / client_id / f"{provider}.json"
+    path = fixtures_dir(Path(str(root))) / client_id / f"{provider}.json"
     return path if path.exists() else None
 
 

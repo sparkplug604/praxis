@@ -23,6 +23,7 @@ from research_common import (
     utc_now,
     write_json,
 )
+from praxis.paths import kg_dir, research_dir
 
 
 def load_metadata(row: sqlite3.Row) -> dict[str, Any]:
@@ -134,7 +135,7 @@ def main() -> int:
     args = parser.parse_args()
 
     root = Path(args.root)
-    db_path = root / "kg" / "skill_graph.sqlite"
+    db_path = kg_dir(root) / "skill_graph.sqlite"
 
     with connect(db_path) as connection:
         if args.list:
@@ -165,7 +166,7 @@ def main() -> int:
     capture_id = f"cap:{slug(source_id)}:{content_hash[:12]}"
     credibility = credibility_score(source_type, capture_metadata)
 
-    captures_root = root / "research" / "captures"
+    captures_root = research_dir(root) / "captures"
     source_dir = captures_root / slug(source_id)
     source_dir.mkdir(parents=True, exist_ok=True)
     raw_path = source_dir / f"{slug(capture_id)}.raw.txt"

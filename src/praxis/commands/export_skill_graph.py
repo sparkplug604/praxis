@@ -10,12 +10,12 @@ from pathlib import Path
 
 from conflict_ledger import open_conflict_count, open_conflict_rows
 from graph_audit import LIVE_STATUSES, ensure_audit_schema
-from praxis.paths import default_root
+from praxis.paths import default_root, exports_dir, kg_dir
 
 
 DEFAULT_ROOT = default_root()
-DEFAULT_DB = DEFAULT_ROOT / "kg" / "skill_graph.sqlite"
-DEFAULT_EXPORT = DEFAULT_ROOT / "exports" / "skill_graph_overview.md"
+DEFAULT_DB = kg_dir(DEFAULT_ROOT) / "skill_graph.sqlite"
+DEFAULT_EXPORT = exports_dir(DEFAULT_ROOT) / "skill_graph_overview.md"
 
 
 def connect(db_path: Path) -> sqlite3.Connection:

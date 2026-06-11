@@ -45,12 +45,12 @@ py -m praxis demo agency
 The demo creates two fixture-backed clients:
 
 ```text
-agency/clients/acme/
-agency/clients/beta/
-reach/fixtures/acme/
-reach/fixtures/beta/
-reach/evidence/
-reach/context_packs/
+workspace/agency/clients/acme/
+workspace/agency/clients/beta/
+workspace/reach/fixtures/acme/
+workspace/reach/fixtures/beta/
+workspace/reach/evidence/
+workspace/reach/context_packs/
 ```
 
 These are local demo artifacts. No live CRM, ads platform, or analytics tool is called.

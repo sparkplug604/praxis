@@ -8,11 +8,11 @@ import sqlite3
 from pathlib import Path
 
 from conflict_ledger import open_conflict_count, open_conflict_rows
-from praxis.paths import default_root
+from praxis.paths import db_dir, default_root, exports_dir, kg_dir, skills_dir
 
 
 DEFAULT_ROOT = default_root()
-DEFAULT_SKILL = DEFAULT_ROOT / "skills" / "praxis-memory"
+DEFAULT_SKILL = skills_dir(DEFAULT_ROOT) / "praxis-memory"
 
 
 def connect(db_path: Path) -> sqlite3.Connection:
@@ -248,9 +248,9 @@ def main() -> int:
 
     root = Path(args.root)
     skill = Path(args.skill)
-    db_path = root / "db" / "praxis.sqlite"
-    kg_db = Path(args.kg_db) if args.kg_db else root / "kg" / "skill_graph.sqlite"
-    out_dir = root / "exports"
+    db_path = db_dir(root) / "praxis.sqlite"
+    kg_db = Path(args.kg_db) if args.kg_db else kg_dir(root) / "skill_graph.sqlite"
+    out_dir = exports_dir(root)
     skill_refs = skill / "references"
 
     conflict_count = 0

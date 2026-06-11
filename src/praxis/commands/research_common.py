@@ -10,14 +10,14 @@ import sqlite3
 from pathlib import Path
 from typing import Any
 
-from praxis.paths import default_root
+from praxis.paths import default_root, kg_dir
 from praxis.intake import extract_source
 from praxis.intake.converters import convert_pdf as _convert_pdf
 from praxis.intake.converters import html_to_text as _html_to_text
 
 
 DEFAULT_ROOT = default_root()
-DEFAULT_DB = DEFAULT_ROOT / "kg" / "skill_graph.sqlite"
+DEFAULT_DB = kg_dir(DEFAULT_ROOT) / "skill_graph.sqlite"
 
 
 def utc_now() -> str:

@@ -22,6 +22,23 @@ Praxis gives agents a way to build on what they learn without dragging a giant c
 
 For agency/GTM evaluation, start with the [Agency GTM Evaluation Guide](docs/evaluators/agency-gtm-evaluation.md).
 
+## Repository Map
+
+Praxis keeps source-controlled product files separate from generated local data.
+
+| Path | Purpose |
+| --- | --- |
+| `src/praxis/` | Python package and CLI implementation for Core, Reach, Agency, intake, search, governance, exports, and connectors. |
+| `docs/` | User guides, module docs, tutorials, connector setup notes, and architecture references. |
+| `examples/` | Small source-controlled examples. Generated demo output should not live here. |
+| `tests/` | Unit and CLI smoke tests for Core, Reach, Agency, intake, governance, and migration behavior. |
+| `adapters/` | Notes and future integration surfaces for agent runtimes and frameworks. |
+| `scripts/` | Thin compatibility wrappers around the package CLI commands. |
+| `bootstrap/` | Source-controlled starter schemas and seed data used to initialize a fresh checkout. |
+| `workspace/` | Local generated runtime state: SQLite DBs, captures, vectors, evidence cards, context packs, client capsules, exports, notes, watchlists, and generated skills. Most files here are git-ignored. |
+
+Older checkouts may still have generated data in root-level folders such as `db/`, `kg/`, `vectors/`, `research/`, `reach/`, or `agency/`. Praxis prefers `workspace/` now, but keeps temporary legacy fallback. Run `praxis migrate-workspace --plan` to inspect a safe migration.
+
 ## Highlights
 
 - **Turn useful sources into agent knowledge**: Core captures links, files, papers, docs, notes, directories, and selected watchlist hits with source metadata preserved.

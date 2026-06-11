@@ -1,3 +1,0 @@
-.env
-*.sqlite-wal
-*.sqlite-shm

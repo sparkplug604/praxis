@@ -363,7 +363,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     export = client_sub.add_parser("export", help="Export a redacted client capsule and local Reach artifacts.")
     export.add_argument("client_id")
-    export.add_argument("--output", help="Output .tar.gz path. Defaults to agency/lifecycle/archives/.")
+    export.add_argument("--output", help="Output .tar.gz path. Defaults to workspace/agency/lifecycle/archives/.")
     export.add_argument("--no-redact", action="store_true", help="Do not redact secret-like JSON fields in the export bundle.")
     export.set_defaults(func=cmd_client_export)
 
