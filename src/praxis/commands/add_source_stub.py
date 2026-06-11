@@ -7,10 +7,10 @@ import argparse
 import re
 from pathlib import Path
 
-from praxis.paths import default_root
+from praxis.paths import default_root, notes_dir
 
 
-DEFAULT_NOTES = default_root() / "notes"
+DEFAULT_NOTES = notes_dir(default_root())
 
 
 def slugify(text: str) -> str:

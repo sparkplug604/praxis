@@ -7,6 +7,7 @@ import argparse
 from pathlib import Path
 
 from vector_common import DEFAULT_ROOT, slug, utc_now
+from praxis.paths import notes_dir as praxis_notes_dir
 
 
 def render_note(title: str, body: str, tags: str, source: str, status: str) -> str:
@@ -62,7 +63,7 @@ def main() -> int:
         raise SystemExit("Refusing to store likely secret material in memory.")
 
     root = Path(args.root)
-    notes_dir = root / "notes"
+    notes_dir = praxis_notes_dir(root)
     notes_dir.mkdir(parents=True, exist_ok=True)
     path = unique_path(notes_dir, f"memory-{slug(args.title)}")
     path.write_text(render_note(args.title, args.body, args.tags, args.source, args.status), encoding="utf-8")

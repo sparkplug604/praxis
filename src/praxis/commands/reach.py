@@ -26,7 +26,7 @@ from praxis.reach.cli_output import (
 from praxis.reach.manifests import list_manifests, load_manifest, seed_builtin_manifests, validate_manifests
 from praxis.reach.ontology import seed_ontology
 from praxis.reach.query_runner import run_manifest
-from praxis.reach.storage import ensure_reach_workspace
+from praxis.reach.storage import agency_dir, context_dir, evidence_dir, ensure_reach_workspace, manifests_dir, reach_dir
 from research_source import capture_source
 
 
@@ -46,8 +46,8 @@ def cmd_init(args: argparse.Namespace) -> int:
     written = seed_builtin_manifests(root)
     ontology_written = seed_ontology(root)
     print("# Praxis Reach init")
-    print(f"workspace: {root / 'reach'}")
-    print(f"agency_clients: {root / 'agency' / 'clients'}")
+    print(f"workspace: {reach_dir(root)}")
+    print(f"agency_clients: {agency_dir(root) / 'clients'}")
     print(f"query_manifests_seeded: {len(written)}")
     print(f"ontology_seeded: {len(ontology_written)}")
     print("status: ok")
@@ -58,11 +58,11 @@ def cmd_doctor(args: argparse.Namespace) -> int:
     root = Path(args.root)
     print("# Praxis Reach doctor")
     for path in [
-        root / "reach",
-        root / "reach" / "query_manifests",
-        root / "reach" / "evidence",
-        root / "reach" / "context_packs",
-        root / "agency" / "clients",
+        reach_dir(root),
+        manifests_dir(root),
+        evidence_dir(root),
+        context_dir(root),
+        agency_dir(root) / "clients",
     ]:
         status = "ok" if path.exists() else "optional-missing"
         print(f"{status}: {path}")

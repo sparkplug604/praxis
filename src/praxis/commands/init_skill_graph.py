@@ -10,7 +10,7 @@ import sqlite3
 from pathlib import Path
 from typing import Any
 
-from praxis.paths import default_root
+from praxis.paths import bootstrap_path, db_dir, default_root, kg_dir
 
 
 DEFAULT_ROOT = default_root()
@@ -339,11 +339,10 @@ def has_skill_graph_schema(db_path: Path) -> bool:
 
 
 def initialize_skill_graph(root: Path, *, no_import_library_db: bool = False, quiet: bool = False) -> Path:
-    kg_dir = root / "kg"
-    schema_path = kg_dir / "schema.sql"
-    seed_path = kg_dir / "seed_graph.json"
-    db_path = kg_dir / "skill_graph.sqlite"
-    library_db = root / "db" / "praxis.sqlite"
+    schema_path = bootstrap_path(root, "kg", "schema.sql")
+    seed_path = bootstrap_path(root, "kg", "seed_graph.json")
+    db_path = kg_dir(root) / "skill_graph.sqlite"
+    library_db = db_dir(root) / "praxis.sqlite"
 
     seed = json.loads(seed_path.read_text(encoding="utf-8"))
     with connect(db_path) as connection:
@@ -364,7 +363,7 @@ def initialize_skill_graph(root: Path, *, no_import_library_db: bool = False, qu
 
 
 def ensure_skill_graph_initialized(root: Path, *, quiet: bool = True) -> Path:
-    db_path = root / "kg" / "skill_graph.sqlite"
+    db_path = kg_dir(root) / "skill_graph.sqlite"
     if has_skill_graph_schema(db_path):
         return db_path
     return initialize_skill_graph(root, quiet=quiet)

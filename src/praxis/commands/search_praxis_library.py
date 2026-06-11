@@ -7,10 +7,10 @@ import argparse
 import sqlite3
 from pathlib import Path
 
-from praxis.paths import default_root
+from praxis.paths import db_dir, default_root
 
 
-DEFAULT_DB = default_root() / "db" / "praxis.sqlite"
+DEFAULT_DB = db_dir(default_root()) / "praxis.sqlite"
 
 
 def connect(db_path: Path) -> sqlite3.Connection:

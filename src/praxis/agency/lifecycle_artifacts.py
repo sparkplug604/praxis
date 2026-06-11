@@ -8,11 +8,13 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from praxis.paths import kg_dir, research_dir, vectors_dir
 from praxis.reach.storage import (
     client_dir,
     context_dir,
     evidence_dir,
     fixtures_dir,
+    reach_dir,
     read_json,
     reach_conflicts_dir,
     slug,
@@ -95,12 +97,12 @@ def assert_safe_target(root: Path, client_id: str, path: Path, kind: str) -> Non
         data = read_json(path)
         if data.get("client_id") == client_id:
             return
-    evidence_sources = (root / "reach" / "evidence_sources").resolve()
+    evidence_sources = (reach_dir(root) / "evidence_sources").resolve()
     if is_relative_to(resolved, evidence_sources) and path.suffix == ".md":
         text = path.read_text(encoding="utf-8", errors="replace")
         if f"client_id: `{client_id}`" in text:
             return
-    captures = (root / "research" / "captures").resolve()
+    captures = (research_dir(root) / "captures").resolve()
     if is_relative_to(resolved, captures):
         for metadata_path in path.glob("*.metadata.json") if path.is_dir() else []:
             data = read_json(metadata_path)
@@ -146,7 +148,7 @@ def _client_conflict_targets(root: Path, client_id: str) -> list[LifecycleTarget
 
 
 def _client_evidence_source_targets(root: Path, client_id: str) -> list[LifecycleTarget]:
-    base = root / "reach" / "evidence_sources"
+    base = reach_dir(root) / "evidence_sources"
     targets: list[LifecycleTarget] = []
     if not base.exists():
         return targets
@@ -163,7 +165,7 @@ def _client_evidence_source_targets(root: Path, client_id: str) -> list[Lifecycl
 
 def _client_research_capture_targets(root: Path, client_id: str) -> list[LifecycleTarget]:
     targets: list[LifecycleTarget] = []
-    base = root / "research" / "captures"
+    base = research_dir(root) / "captures"
     if not base.exists():
         return targets
     for metadata_path in sorted(base.glob("*/**/*.metadata.json")):
@@ -179,7 +181,7 @@ def _client_research_capture_targets(root: Path, client_id: str) -> list[Lifecyc
 
 
 def _reach_source_ids(root: Path, client_id: str) -> list[str]:
-    db = root / "kg" / "skill_graph.sqlite"
+    db = kg_dir(root) / "skill_graph.sqlite"
     if not db.exists() or not _table_exists(db, "source_registry"):
         return []
     with sqlite3.connect(db) as connection:
@@ -201,7 +203,7 @@ def _source_id_belongs_to_client(source_id: str, client_id: str) -> bool:
 
 
 def _count_kg_records(root: Path, source_ids: list[str]) -> dict[str, int]:
-    db = root / "kg" / "skill_graph.sqlite"
+    db = kg_dir(root) / "skill_graph.sqlite"
     if not source_ids or not db.exists():
         return {}
     counts: dict[str, int] = {}
@@ -213,7 +215,7 @@ def _count_kg_records(root: Path, source_ids: list[str]) -> dict[str, int]:
 
 
 def _count_vector_records(root: Path, source_ids: list[str]) -> dict[str, int]:
-    db = root / "vectors" / "semantic_index.sqlite"
+    db = vectors_dir(root) / "semantic_index.sqlite"
     if not source_ids or not db.exists():
         return {}
     counts: dict[str, int] = {}
@@ -225,7 +227,7 @@ def _count_vector_records(root: Path, source_ids: list[str]) -> dict[str, int]:
 
 
 def _delete_kg_records(root: Path, source_ids: list[str]) -> dict[str, int]:
-    db = root / "kg" / "skill_graph.sqlite"
+    db = kg_dir(root) / "skill_graph.sqlite"
     if not source_ids or not db.exists():
         return {}
     counts = _count_kg_records(root, source_ids)
@@ -237,7 +239,7 @@ def _delete_kg_records(root: Path, source_ids: list[str]) -> dict[str, int]:
 
 
 def _delete_vector_records(root: Path, source_ids: list[str]) -> dict[str, int]:
-    db = root / "vectors" / "semantic_index.sqlite"
+    db = vectors_dir(root) / "semantic_index.sqlite"
     if not source_ids or not db.exists():
         return {}
     counts = _count_vector_records(root, source_ids)

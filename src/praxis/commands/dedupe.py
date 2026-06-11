@@ -5,11 +5,11 @@ from __future__ import annotations
 
 import argparse
 import json
-from pathlib import Path
 
 from conflict_ledger import DEDUP_TYPES, ensure_conflict_schema
 from graph_audit import create_change_set, fetch_graph_object, log_change_item, mark_graph_object_status, rollback_change_set
 from init_skill_graph import upsert_node
+from praxis.paths import kg_dir
 from research_common import DEFAULT_ROOT, connect, utc_now
 
 
@@ -26,7 +26,7 @@ def conflict_items(connection, conflict_id: str) -> list:
 
 
 def cmd_list(args: argparse.Namespace) -> int:
-    db_path = Path(args.root) / "kg" / "skill_graph.sqlite"
+    db_path = kg_dir(args.root) / "skill_graph.sqlite"
     with connect(db_path) as connection:
         ensure_conflict_schema(connection)
         placeholders = ", ".join("?" for _ in DEDUP_TYPES)
@@ -53,7 +53,7 @@ def cmd_list(args: argparse.Namespace) -> int:
 
 
 def cmd_show(args: argparse.Namespace) -> int:
-    db_path = Path(args.root) / "kg" / "skill_graph.sqlite"
+    db_path = kg_dir(args.root) / "skill_graph.sqlite"
     with connect(db_path) as connection:
         ensure_conflict_schema(connection)
         row = connection.execute("SELECT * FROM conflict_records WHERE id = ?", (args.conflict,)).fetchone()
@@ -175,7 +175,7 @@ def merge_nodes(connection, conflict_id: str, canonical_id: str | None, actor: s
 
 
 def cmd_merge(args: argparse.Namespace) -> int:
-    db_path = Path(args.root) / "kg" / "skill_graph.sqlite"
+    db_path = kg_dir(args.root) / "skill_graph.sqlite"
     with connect(db_path) as connection:
         try:
             change_set_id = merge_nodes(connection, args.conflict, args.canonical, args.actor)
@@ -190,7 +190,7 @@ def cmd_merge(args: argparse.Namespace) -> int:
 
 
 def cmd_split(args: argparse.Namespace) -> int:
-    db_path = Path(args.root) / "kg" / "skill_graph.sqlite"
+    db_path = kg_dir(args.root) / "skill_graph.sqlite"
     with connect(db_path) as connection:
         try:
             count = rollback_change_set(connection, args.change_set, actor=args.actor, force=args.force)

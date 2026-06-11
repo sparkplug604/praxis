@@ -8,7 +8,7 @@ import json
 import sqlite3
 from pathlib import Path
 
-from praxis.paths import default_root
+from praxis.paths import bootstrap_path, db_dir, default_root
 
 
 DEFAULT_ROOT = default_root()
@@ -175,9 +175,9 @@ def main() -> int:
     args = parser.parse_args()
 
     root = Path(args.root)
-    schema_path = root / "db" / "schema.sql"
-    seed_path = root / "sources" / "seed_sources.json"
-    db_path = root / "db" / "praxis.sqlite"
+    schema_path = bootstrap_path(root, "db", "schema.sql")
+    seed_path = bootstrap_path(root, "sources", "seed_sources.json")
+    db_path = db_dir(root) / "praxis.sqlite"
 
     seed = json.loads(seed_path.read_text())
     with connect(db_path) as connection:

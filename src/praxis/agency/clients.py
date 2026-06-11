@@ -15,6 +15,7 @@ from praxis.reach.storage import (
     client_metrics_path,
     client_permissions_path,
     client_systems_path,
+    agency_dir,
     read_json,
     slug,
     write_json,
@@ -99,7 +100,7 @@ def load_client(root: Path, client_id: str) -> ClientCapsule:
 
 
 def list_clients(root: Path, *, include_archived: bool = False) -> list[ClientCapsule]:
-    base = root / "agency" / "clients"
+    base = agency_dir(root) / "clients"
     if not base.exists():
         return []
     clients: list[ClientCapsule] = []

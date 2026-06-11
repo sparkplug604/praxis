@@ -30,10 +30,21 @@ REPO = Path(__file__).resolve().parents[1]
 
 
 def copy_fixture(source: str, root: Path) -> None:
-    src = REPO / source
-    dst = root / source
+    src = REPO / "bootstrap" / source
+    if not src.exists():
+        src = REPO / source
+    dst = root / "bootstrap" / source if source in {
+        "db/schema.sql",
+        "kg/schema.sql",
+        "kg/seed_graph.json",
+        "sources/seed_sources.json",
+    } else root / source
     dst.parent.mkdir(parents=True, exist_ok=True)
     dst.write_text(src.read_text(encoding="utf-8"), encoding="utf-8")
+
+
+def ws(root: Path, *parts: str) -> Path:
+    return root.joinpath("workspace", *parts)
 
 
 def run_praxis(root: Path, *args: str, check: bool = True) -> subprocess.CompletedProcess[str]:
@@ -85,10 +96,10 @@ class ReachAgencyTests(unittest.TestCase):
                 "CAD",
             )
             self.assertIn("client_id: acme", created.stdout)
-            self.assertTrue((root / "agency" / "clients" / "acme" / "systems.json").exists())
-            self.assertTrue((root / "agency" / "clients" / "acme" / "field_map.json").exists())
-            self.assertTrue((root / "agency" / "clients" / "acme" / "metrics.json").exists())
-            self.assertTrue((root / "agency" / "clients" / "acme" / "permissions.json").exists())
+            self.assertTrue(ws(root, "agency", "clients", "acme", "systems.json").exists())
+            self.assertTrue(ws(root, "agency", "clients", "acme", "field_map.json").exists())
+            self.assertTrue(ws(root, "agency", "clients", "acme", "metrics.json").exists())
+            self.assertTrue(ws(root, "agency", "clients", "acme", "permissions.json").exists())
 
             listed = run_praxis(root, "agency", "client", "list")
             self.assertIn("acme: Acme SaaS", listed.stdout)
@@ -101,7 +112,7 @@ class ReachAgencyTests(unittest.TestCase):
             query = run_praxis(root, "reach", "query", "run", "weekly_gtm_review", "--client", "acme", "--days", "30")
             evidence_id = evidence_id_from(query.stdout)
             self.assertIn("storage_level: aggregate_summary", query.stdout)
-            evidence_payload = json.loads(next((root / "reach" / "evidence").glob("*.json")).read_text(encoding="utf-8"))
+            evidence_payload = json.loads(next(ws(root, "reach", "evidence").glob("*.json")).read_text(encoding="utf-8"))
             self.assertEqual(1, evidence_payload["artifact_schema_version"])
             self.assertEqual(44, evidence_payload["metrics"]["leads"])
             self.assertEqual("mock_crm", evidence_payload["metric_sources"]["leads"])
@@ -110,7 +121,7 @@ class ReachAgencyTests(unittest.TestCase):
             self.assertEqual("conflicted", evidence_payload["data_quality_status"])
             self.assertLess(evidence_payload["confidence_score"], 1.0)
             self.assertTrue(evidence_payload["conflict_records"])
-            self.assertTrue(list((root / "reach" / "conflicts").glob("*.json")))
+            self.assertTrue(list(ws(root, "reach", "conflicts").glob("*.json")))
             self.assertIn("start_date", evidence_payload["params"])
             self.assertIn("end_date", evidence_payload["params"])
             self.assertIn("source_metadata", evidence_payload)
@@ -144,7 +155,7 @@ class ReachAgencyTests(unittest.TestCase):
             self.assertTrue(context_path.exists())
             self.assertTrue(refreshed_context_path.exists())
 
-            evidence_files = sorted((root / "reach" / "evidence").glob("*.json"))
+            evidence_files = sorted(ws(root, "reach", "evidence").glob("*.json"))
             self.assertGreaterEqual(len(evidence_files), 2)
 
             stale_file = evidence_files[0]
@@ -217,7 +228,7 @@ class ReachAgencyTests(unittest.TestCase):
             evidence_id = evidence_id_from(query.stdout)
             captured = run_praxis(root, "reach", "evidence", "capture", evidence_id)
             self.assertIn("capture_id:", captured.stdout)
-            self.assertTrue((root / "reach" / "evidence_sources").exists())
+            self.assertTrue(ws(root, "reach", "evidence_sources").exists())
 
             doctor = run_praxis(root, "agency", "client", "doctor", "acme")
             self.assertIn("status: ok", doctor.stdout)
@@ -240,7 +251,7 @@ class ReachAgencyTests(unittest.TestCase):
                 payload
                 for payload in (
                     json.loads(path.read_text(encoding="utf-8"))
-                    for path in (root / "reach" / "evidence").glob("*.json")
+                    for path in ws(root, "reach", "evidence").glob("*.json")
                 )
                 if payload["evidence_id"] == dated_evidence_id
             )
@@ -267,7 +278,7 @@ class ReachAgencyTests(unittest.TestCase):
             root = Path(tempdir)
             run_praxis(root, "reach", "init")
             run_praxis(root, "agency", "client", "create", "acme", "--crm", "fixture_crm", "--ads", "fixture_ads")
-            fixture_dir = root / "reach" / "fixtures" / "acme"
+            fixture_dir = ws(root, "reach", "fixtures", "acme")
             fixture_dir.mkdir(parents=True, exist_ok=True)
             (fixture_dir / "fixture_crm.json").write_text(
                 json.dumps(
@@ -360,7 +371,7 @@ class ReachAgencyTests(unittest.TestCase):
             run_praxis(root, "reach", "init")
             created = run_praxis(root, "agency", "fixture", "create", "demo", "--profile", "b2b-saas")
             self.assertIn("status: created", created.stdout)
-            self.assertTrue((root / "reach" / "fixtures" / "demo" / "fixture_crm.json").exists())
+            self.assertTrue(ws(root, "reach", "fixtures", "demo", "fixture_crm.json").exists())
             run = run_praxis(root, "agency", "run", "weekly_gtm_review", "--all-clients", "--context")
             self.assertIn("client_id: demo", run.stdout)
             report = run_praxis(root, "agency", "stale-context-report", "--all")
@@ -371,9 +382,9 @@ class ReachAgencyTests(unittest.TestCase):
             root = Path(tempdir)
             result = run_praxis(root, "setup", "--non-interactive", "--path", "reach-demo")
             self.assertIn("Reach demo is ready", result.stdout)
-            self.assertTrue((root / "agency" / "clients" / "demo" / "client.json").exists())
-            self.assertTrue(any((root / "reach" / "evidence").glob("*.json")))
-            self.assertTrue(any((root / "reach" / "context_packs").glob("**/*.md")))
+            self.assertTrue(ws(root, "agency", "clients", "demo", "client.json").exists())
+            self.assertTrue(any(ws(root, "reach", "evidence").glob("*.json")))
+            self.assertTrue(any(ws(root, "reach", "context_packs").glob("**/*.md")))
 
             missing_path = run_praxis(root, "setup", "--non-interactive", check=False)
             self.assertEqual(2, missing_path.returncode)
@@ -389,16 +400,16 @@ class ReachAgencyTests(unittest.TestCase):
                 copy_fixture(fixture, root)
             core = run_praxis(root, "demo", "core")
             self.assertIn("Core demo complete", core.stdout)
-            self.assertTrue((root / "research" / "demo_sources" / "praxis-core-demo.md").exists())
+            self.assertTrue(ws(root, "research", "demo_sources", "praxis-core-demo.md").exists())
 
             reach = run_praxis(root, "demo", "reach")
             self.assertIn("Reach demo complete", reach.stdout)
-            self.assertTrue(any((root / "reach" / "evidence").glob("*.json")))
+            self.assertTrue(any(ws(root, "reach", "evidence").glob("*.json")))
 
             agency = run_praxis(root, "demo", "agency")
             self.assertIn("Agency demo complete", agency.stdout)
-            self.assertTrue((root / "agency" / "clients" / "acme" / "client.json").exists())
-            self.assertTrue((root / "agency" / "clients" / "beta" / "client.json").exists())
+            self.assertTrue(ws(root, "agency", "clients", "acme", "client.json").exists())
+            self.assertTrue(ws(root, "agency", "clients", "beta", "client.json").exists())
 
     def test_unconfigured_real_connector_is_reported_without_traceback(self) -> None:
         with tempfile.TemporaryDirectory() as tempdir:
@@ -423,7 +434,7 @@ class ReachAgencyTests(unittest.TestCase):
 
             shown = run_praxis(root, "agency", "client", "show", "acme")
             self.assertIn("google_ads", shown.stdout)
-            config = json.loads((root / "agency" / "clients" / "acme" / "systems.json").read_text(encoding="utf-8"))
+            config = json.loads(ws(root, "agency", "clients", "acme", "systems.json").read_text(encoding="utf-8"))
             ads_config = config["systems"]["ads"][0]
             self.assertEqual("GOOGLE_ADS_ACME_CONFIGURATION_FILE", ads_config["config_env"])
             self.assertEqual("GOOGLE_ADS_ACME_CUSTOMER_ID", ads_config["customer_id_env"])
@@ -442,7 +453,7 @@ class ReachAgencyTests(unittest.TestCase):
 
             shown = run_praxis(root, "agency", "client", "show", "acme")
             self.assertIn("bigquery", shown.stdout)
-            config = json.loads((root / "agency" / "clients" / "acme" / "systems.json").read_text(encoding="utf-8"))
+            config = json.loads(ws(root, "agency", "clients", "acme", "systems.json").read_text(encoding="utf-8"))
             warehouse_config = config["systems"]["warehouse"]
             self.assertEqual("BIGQUERY_ACME_PROJECT_ID", warehouse_config["project_id_env"])
             self.assertEqual("BIGQUERY_ACME_DATASET", warehouse_config["dataset_env"])
@@ -1064,13 +1075,13 @@ class ReachAgencyTests(unittest.TestCase):
             with tarfile.open(export_path, "r:gz") as archive_file:
                 names = archive_file.getnames()
             self.assertIn("acme/export_manifest.json", names)
-            self.assertTrue(any(name.endswith("agency/clients/acme/client.json") for name in names))
+            self.assertTrue(any(name.endswith("workspace/agency/clients/acme/client.json") for name in names))
 
             plan_output = run_praxis(root, "agency", "client", "delete-plan", "acme", "--reason", "privacy request")
             plan_id = _match_value(plan_output.stdout, "plan_id")
             self.assertIn("confirmation_required", plan_output.stdout)
-            self.assertIn("agency/clients/acme", plan_output.stdout)
-            self.assertIn("reach/evidence", plan_output.stdout)
+            self.assertIn("workspace/agency/clients/acme", plan_output.stdout)
+            self.assertIn("workspace/reach/evidence", plan_output.stdout)
 
             bad_delete = run_praxis(
                 root,
@@ -1102,8 +1113,8 @@ class ReachAgencyTests(unittest.TestCase):
             )
             receipt_id = _match_value(deleted.stdout, "receipt_id")
             quarantine_path = Path(deleted.stdout.split("quarantine_path:", 1)[1].splitlines()[0].strip())
-            self.assertFalse((root / "agency" / "clients" / "acme").exists())
-            self.assertTrue((root / "agency" / "clients" / "beta").exists())
+            self.assertFalse(ws(root, "agency", "clients", "acme").exists())
+            self.assertTrue(ws(root, "agency", "clients", "beta").exists())
             self.assertTrue((root / quarantine_path).exists())
 
             evidence_list = run_praxis(root, "reach", "evidence", "list", check=False)

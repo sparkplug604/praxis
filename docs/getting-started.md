@@ -108,7 +108,7 @@ Agency runs should show each client separately:
 ```text
 client_id: acme
 status: ok
-context_pack: /path/to/reach/context_packs/...
+context_pack: /path/to/workspace/reach/context_packs/...
 ```
 
 ## Tutorials

@@ -86,14 +86,15 @@ praxis reach evidence list --client demo
 `praxis reach init` creates the local Reach workspace:
 
 ```text
-reach/
-  query_manifests/
-  ontology/
-  evidence/
-  context_packs/
-  fixtures/
-agency/
-  clients/
+workspace/
+  reach/
+    query_manifests/
+    ontology/
+    evidence/
+    context_packs/
+    fixtures/
+  agency/
+    clients/
 ```
 
 Built-in query manifests include:

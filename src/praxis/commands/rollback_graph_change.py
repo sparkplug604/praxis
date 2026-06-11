@@ -4,9 +4,9 @@
 from __future__ import annotations
 
 import argparse
-from pathlib import Path
 
 from graph_audit import RollbackConflictError, rollback_change_set
+from praxis.paths import kg_dir
 from research_common import DEFAULT_ROOT, connect
 
 
@@ -18,7 +18,7 @@ def main() -> int:
     parser.add_argument("--force", action="store_true", help="Rollback even if affected objects changed after the change set.")
     args = parser.parse_args()
 
-    db_path = Path(args.root) / "kg" / "skill_graph.sqlite"
+    db_path = kg_dir(args.root) / "skill_graph.sqlite"
     with connect(db_path) as connection:
         try:
             count = rollback_change_set(connection, args.change_set, actor=args.actor, force=args.force)

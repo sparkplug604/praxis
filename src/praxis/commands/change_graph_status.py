@@ -4,10 +4,10 @@
 from __future__ import annotations
 
 import argparse
-from pathlib import Path
 
 from conflict_ledger import scan_change_set
 from graph_audit import change_change_set_object_statuses
+from praxis.paths import kg_dir
 from research_common import DEFAULT_ROOT, connect
 
 
@@ -31,7 +31,7 @@ def main(argv: list[str] | None = None, *, command: str | None = None) -> int:
 
     action = command or args.command
     status = status_for_command(action)
-    db_path = Path(args.root) / "kg" / "skill_graph.sqlite"
+    db_path = kg_dir(args.root) / "skill_graph.sqlite"
     with connect(db_path) as connection:
         try:
             count = change_change_set_object_statuses(

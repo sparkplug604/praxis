@@ -11,6 +11,7 @@ from init_skill_graph import upsert_edge, upsert_evidence, upsert_node
 from graph_audit import audited_upsert, create_change_set, ensure_audit_schema
 from conflict_ledger import scan_change_set
 from research_common import DEFAULT_ROOT, connect, read_json, utc_now
+from praxis.paths import kg_dir, research_dir
 
 
 def ensure_edge_nodes_exist(connection, proposal: dict) -> list[str]:
@@ -40,8 +41,8 @@ def apply_proposal(
     if risk == "high" and not allow_high_risk:
         raise PermissionError("Refusing to apply high-risk proposal without --allow-high-risk.")
 
-    db_path = root / "kg" / "skill_graph.sqlite"
-    applied_dir = root / "research" / "applied"
+    db_path = kg_dir(root) / "skill_graph.sqlite"
+    applied_dir = research_dir(root) / "applied"
 
     with connect(db_path) as connection:
         ensure_audit_schema(connection)

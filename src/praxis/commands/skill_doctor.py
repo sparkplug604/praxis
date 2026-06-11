@@ -7,13 +7,22 @@ import argparse
 import sqlite3
 from pathlib import Path
 
-from praxis.paths import default_root
+from praxis.paths import (
+    active_runtime_paths,
+    bootstrap_path,
+    db_dir,
+    default_root,
+    kg_dir,
+    legacy_runtime_paths,
+    vectors_dir,
+    workspace_root,
+)
 
 
 ROOT = default_root()
-VECTOR_DB = ROOT / "vectors" / "semantic_index.sqlite"
-KG_DB = ROOT / "kg" / "skill_graph.sqlite"
-RELATIONAL_DB = ROOT / "db" / "praxis.sqlite"
+VECTOR_DB = vectors_dir(ROOT) / "semantic_index.sqlite"
+KG_DB = kg_dir(ROOT) / "skill_graph.sqlite"
+RELATIONAL_DB = db_dir(ROOT) / "praxis.sqlite"
 
 
 def check_path(label: str, path: Path, *, required: bool = True) -> bool:
@@ -60,6 +69,16 @@ def check_vector_completeness() -> bool:
     return True
 
 
+def check_layout() -> None:
+    print(f"ok: workspace root: {workspace_root(ROOT)}")
+    active = active_runtime_paths(ROOT)
+    for name, legacy in legacy_runtime_paths(ROOT).items():
+        active_path = active[name]
+        if legacy.exists() and active_path != legacy:
+            print(f"warning: legacy runtime path still exists: {legacy}")
+            print("warning: run `praxis migrate-workspace --plan` to review workspace migration.")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--require-index", action="store_true", help="Fail if generated SQLite indexes have not been initialized.")
@@ -70,9 +89,6 @@ def main() -> int:
     for rel in [
         "README.md",
         "docs/README.md",
-        "db/schema.sql",
-        "kg/schema.sql",
-        "kg/seed_graph.json",
         "docs/cli.md",
         "docs/getting-started.md",
         "docs/troubleshooting.md",
@@ -105,6 +121,15 @@ def main() -> int:
         "docs/connectors/bigquery.md",
     ]:
         ok &= check_path(rel, ROOT / rel)
+
+    for rel in [
+        "db/schema.sql",
+        "kg/schema.sql",
+        "kg/seed_graph.json",
+        "sources/seed_sources.json",
+    ]:
+        ok &= check_path(f"bootstrap/{rel}", bootstrap_path(ROOT, rel))
+    check_layout()
 
     ok &= check_sqlite_tables(
         RELATIONAL_DB,

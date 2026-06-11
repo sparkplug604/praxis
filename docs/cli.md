@@ -37,9 +37,18 @@ py -m praxis --help
 py -m praxis <command> --help
 ```
 
-Praxis is currently checkout/workspace-oriented. The CLI expects a Praxis root containing `scripts/`, `db/`, `kg/`, `research/`, and `vectors/`.
+Praxis is checkout/workspace-oriented. The CLI expects a Praxis root containing `scripts/`, `bootstrap/`, and `workspace/`.
+
+`bootstrap/` holds source-controlled starter schemas and seed files. `workspace/` holds generated local runtime data such as SQLite DBs, source captures, vector indexes, evidence cards, context packs, client capsules, exports, notes, and generated skills.
 
 If you run the CLI outside the checkout, pass `--root /path/to/Praxis` or set `PRAXIS_ROOT`.
+
+Older checkouts may still have generated data in root-level folders such as `db/`, `kg/`, `vectors/`, `research/`, `reach/`, or `agency/`. New commands prefer `workspace/` and fall back to legacy paths for one minor release. Review migration with:
+
+```bash
+praxis migrate-workspace --plan
+praxis migrate-workspace --apply
+```
 
 Important: `ingest`, `search`, `graph`, and other actions are Praxis subcommands. Run `praxis ingest "https://example.com/source"` or `py -m praxis ingest "https://example.com/source"`, not `ingest "https://example.com/source"` by itself.
 
@@ -210,7 +219,7 @@ python3 scripts/deprecate_graph_change.py "chg:..."
 python3 scripts/rollback_graph_change.py "chg:..."
 python3 scripts/research_source.py "https://example.com/source"
 python3 scripts/propose_graph_update.py "cap:source-id:hash"
-python3 scripts/apply_graph_update.py "research/proposals/proposal.json" --dry-run
+python3 scripts/apply_graph_update.py "workspace/research/proposals/proposal.json" --dry-run
 python3 scripts/chunk_sources.py --changed-only
 python3 scripts/index_vectors.py --provider local-hash
 python3 scripts/eval_retrieval.py

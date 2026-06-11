@@ -15,12 +15,12 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterable
 
-from praxis.paths import default_root
+from praxis.paths import default_root, kg_dir, vectors_dir
 
 
 DEFAULT_ROOT = default_root()
-DEFAULT_VECTOR_DB = DEFAULT_ROOT / "vectors" / "semantic_index.sqlite"
-DEFAULT_KG_DB = DEFAULT_ROOT / "kg" / "skill_graph.sqlite"
+DEFAULT_VECTOR_DB = vectors_dir(DEFAULT_ROOT) / "semantic_index.sqlite"
+DEFAULT_KG_DB = kg_dir(DEFAULT_ROOT) / "skill_graph.sqlite"
 DEFAULT_LOCAL_MODEL = "local-hash-bow-384"
 DEFAULT_OPENAI_MODEL = "text-embedding-3-small"
 USER_AGENT = "PraxisVectorRAG/0.1 (+local semantic index)"

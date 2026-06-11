@@ -23,10 +23,11 @@ from vector_common import (
     slug,
     utc_now,
 )
+from praxis.paths import bootstrap_path, exports_dir, notes_dir, research_dir, sources_dir, watchlists_dir
 
 
 SKILL_PATHS: list[Path] = []
-RUNTIME_MANIFEST = DEFAULT_ROOT / "sources" / "runtime_corpus.example.json"
+RUNTIME_MANIFEST = bootstrap_path(DEFAULT_ROOT, "sources", "runtime_corpus.example.json")
 
 
 def safe_read(path: Path) -> str:
@@ -81,17 +82,15 @@ def runtime_files(manifest_path: Path = RUNTIME_MANIFEST) -> list[Path]:
 
 def default_files(root: Path, *, include_skills: bool, include_runtimes: bool) -> list[Path]:
     paths: list[Path] = []
-    patterns = [
-        "research/captures/**/*.raw.txt",
-        "research/captures/**/*.summary.md",
-        "exports/*.md",
-        "notes/*.md",
-        "research/README.md",
-        "sources/*.json",
-        "watchlists/*.json",
-    ]
-    for pattern in patterns:
-        paths.extend(sorted(root.glob(pattern)))
+    paths.extend(sorted((research_dir(root) / "captures").glob("**/*.raw.txt")))
+    paths.extend(sorted((research_dir(root) / "captures").glob("**/*.summary.md")))
+    paths.extend(sorted(exports_dir(root).glob("*.md")))
+    paths.extend(sorted(notes_dir(root).glob("*.md")))
+    paths.extend(sorted(sources_dir(root).glob("*.json")))
+    paths.extend(sorted(watchlists_dir(root).glob("*.json")))
+    research_readme = research_dir(root) / "README.md"
+    if research_readme.exists():
+        paths.append(research_readme)
 
     if include_skills:
         for skill_root in SKILL_PATHS:

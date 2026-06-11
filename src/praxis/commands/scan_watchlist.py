@@ -17,6 +17,7 @@ from pathlib import Path
 from typing import Any
 
 from research_common import DEFAULT_ROOT, USER_AGENT, connect, read_json, read_web, sha256_text, slug, utc_now, write_json
+from praxis.paths import kg_dir, research_dir, watchlists_dir
 
 
 ARXIV_ENDPOINT = "https://export.arxiv.org/api/query"
@@ -392,7 +393,7 @@ def resolve_watchlist(root: Path, value: str) -> Path:
     path = Path(value)
     if path.exists():
         return path
-    candidate = root / "watchlists" / f"{value}.json"
+    candidate = watchlists_dir(root) / f"{value}.json"
     if candidate.exists():
         return candidate
     raise FileNotFoundError(f"Watchlist not found: {value}")
@@ -413,7 +414,7 @@ def main() -> int:
     watchlist = read_json(watchlist_path)
     watchlist_name = watchlist["name"]
     run_id = f"run:{watchlist_name}:{dt.datetime.now(dt.UTC).strftime('%Y%m%dT%H%M%SZ')}"
-    report_path = root / "research" / "inbox" / f"{slug(run_id)}.json"
+    report_path = research_dir(root) / "inbox" / f"{slug(run_id)}.json"
 
     all_hits: list[Hit] = []
     query_count = 0
@@ -441,7 +442,7 @@ def main() -> int:
     write_json(report_path, report)
 
     if not args.dry_run:
-        with connect(root / "kg" / "skill_graph.sqlite") as connection:
+        with connect(kg_dir(root) / "skill_graph.sqlite") as connection:
             save_run(
                 connection,
                 run_id,
