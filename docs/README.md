@@ -8,6 +8,8 @@ This is the map for the Praxis documentation.
 - [Troubleshooting](troubleshooting.md): Windows/PATH issues, missing tables, credentials, and search setup.
 - [CLI Reference](cli.md): command groups and examples.
 - [Praxis Intake](modules/core/intake.md): source detection, file conversion, parse quality, and optional parser dependencies.
+- [Praxis Authority Anchors](modules/core/authority.md): source-of-record rules, freshness checks, and adjudication records.
+- [Praxis Core Governance](modules/core/governance.md): evidence reuse checks, governance health checks, search/export warnings, and hash-chain receipts.
 
 ## Modules
 

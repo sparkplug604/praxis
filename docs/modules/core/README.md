@@ -15,6 +15,9 @@ Core is where Praxis handles:
 - hybrid search;
 - SkillGraph updates;
 - conflict and dedupe records;
+- entity-aware evidence annotations;
+- authority anchors for source-of-record checks;
+- governance checks and hash-chain receipts;
 - rollback;
 - skill/reference export.
 
@@ -81,9 +84,12 @@ praxis search "what did this source teach us?" --explain
 | `praxis search` | Runs hybrid semantic, keyword, and graph search. |
 | `praxis graph` | Searches or traverses the SkillGraph. |
 | `praxis changes` | Lists and inspects graph change sets. |
+| `praxis entities` | Extracts entity mentions, resolves them against SkillGraph aliases, and creates evidence annotations. |
 | `praxis conflicts` | Lists and resolves conflict records. |
 | `praxis dedupe` | Reviews duplicate source/entity candidates. |
 | `praxis rollback` | Reverts an audited change set. |
+| `praxis authority` | Manages source-of-record authority anchors. |
+| `praxis governance` | Checks evidence reuse, authority, conflicts, and governance receipts. |
 | `praxis export-skill-refs` | Exports selected knowledge into reusable Markdown references. |
 
 ## Search And Ranking
@@ -95,6 +101,7 @@ That means Praxis considers:
 - semantic relevance;
 - keyword relevance;
 - graph links;
+- accepted entity links when `--entity-aware` is used;
 - source trust;
 - freshness;
 - active/deprecated status;
@@ -112,6 +119,17 @@ Use raw retrieval order when debugging:
 praxis search "chunking strategy for RAG" --rank-by relevance
 ```
 
+Use entity-aware search after extracting and resolving mentions:
+
+```bash
+praxis entities extract --changed-only
+praxis entities resolve
+praxis entities explain "Acme"
+praxis search "Acme renewal risk" --entity-aware --explain
+```
+
+Entity-aware retrieval keeps raw mentions in the semantic index, resolves them against canonical SkillGraph nodes and aliases, then emits evidence annotations such as `ann:...`. Governance can evaluate those annotations before they are reused as durable knowledge.
+
 ## Conflict And Dedupe Handling
 
 Core can log:
@@ -123,6 +141,22 @@ Core can log:
 - claim-like contradictions.
 
 Conflict records are not magic truth judgments. They are warning lights. They help you inspect suspicious memory before it spreads into search or skill exports.
+
+## Authority Anchors
+
+Core also includes an experimental authority layer exposed as `praxis authority`.
+
+Authority anchors define which source is allowed to settle a type of claim. For example, a CRM may be authoritative for opportunity stage, while an ad platform is only context for that same claim.
+
+See [Praxis Authority Anchors](authority.md).
+
+## Core Governance
+
+Core governance is exposed as `praxis governance`.
+
+It validates evidence references, checks source authority, reports unresolved conflicts, records policy evaluations, and verifies a local hash-chain ledger of governance events.
+
+See [Praxis Core Governance](governance.md).
 
 ## Skill Export
 
@@ -136,6 +170,6 @@ This is the bridge between RAG and skills: useful knowledge can start as source 
 
 ## What Core Does Not Do Yet
 
-Core is not a hosted memory service, not a production vector database, and not an autonomous agent runtime.
+Core is not a hosted memory service, not a production vector database, not a hardened enterprise policy engine, and not an autonomous agent runtime.
 
 It gives you a local, inspectable knowledge layer that other agents and runtimes can use.

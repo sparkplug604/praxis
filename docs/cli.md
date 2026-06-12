@@ -138,10 +138,25 @@ Search the corpus and SkillGraph:
 praxis search "knowledge to skill loop"
 praxis search "knowledge to skill loop" --explain
 praxis search "knowledge to skill loop" --rank-by relevance
+praxis search "Acme renewal risk" --entity-aware --explain
 praxis graph search "SkillGraph"
 ```
 
-`praxis search` ranks by unified context priority by default. The priority score keeps retrieval relevance visible, then adjusts for source trust, freshness, graph fit, live/deprecated status, and unresolved conflicts. Use `--rank-by relevance` when you want the raw retrieval order without those governance signals.
+`praxis search` ranks by unified context priority by default. The priority score keeps retrieval relevance visible, then adjusts for source trust, freshness, graph fit, live/deprecated status, accepted entity links, and unresolved conflicts. Use `--rank-by relevance` when you want the raw retrieval order without those governance signals.
+
+Extract and resolve entity-aware evidence:
+
+```bash
+praxis entities init
+praxis entities extract --changed-only
+praxis entities resolve
+praxis entities mentions --status accepted
+praxis entities explain "Acme"
+praxis entities search "Acme renewal risk" --show-text
+praxis entities annotation "ann:..."
+```
+
+`praxis entities` stores raw mentions in the semantic index, resolves them against SkillGraph node names and aliases, and creates source-linked evidence annotations for accepted matches.
 
 Capture a source and auto-apply provisional graph memory:
 
@@ -183,6 +198,29 @@ praxis dedupe merge "conflict:duplicate_entity:..." --canonical "node:id"
 praxis dedupe split "chg:..."
 ```
 
+Inspect source authority:
+
+```bash
+praxis authority init
+praxis authority activate workspace/authority/bundles/client.json
+praxis authority compile
+praxis authority verify --strict
+praxis authority anchors list
+praxis authority adjudicate --claim-type operational_metric --source system_of_record --evidence "ev:..." --fresh-at "2026-06-10T12:00:00+00:00"
+praxis authority records list
+```
+
+Run Core governance checks:
+
+```bash
+praxis governance init
+praxis governance doctor --init
+praxis governance evaluate --claim-type operational_metric --source system_of_record --evidence "ev:..." --fresh-at "2026-06-10T12:00:00+00:00"
+praxis governance evaluate --claim-type entity_identity --source entity_annotation --evidence "ann:..."
+praxis governance events list
+praxis governance ledger verify
+```
+
 Refresh retrieval indexes:
 
 ```bash
@@ -199,9 +237,14 @@ Export with conflict safety:
 ```bash
 praxis export-graph --include-conflict-notes
 praxis export-graph --fail-on-open-conflicts
+praxis export-graph --strict-governance
+praxis export-graph --strict-governance --governance-threshold error
 praxis export-skill-refs --fail-on-open-conflicts
 praxis export-skill-refs --include-conflict-notes
+praxis export-skill-refs --strict-governance
+praxis export-skill-refs --strict-governance --governance-threshold error
 ```
+Use `--governance-threshold error` when warnings should stay visible but not block export.
 
 ## Script Wrappers
 

@@ -10,6 +10,7 @@ from pathlib import Path
 
 from conflict_ledger import open_conflict_count, open_conflict_rows
 from graph_audit import LIVE_STATUSES, ensure_audit_schema
+from praxis.governance.doctor import blocking_governance_checks, run_governance_doctor
 from praxis.paths import default_root, exports_dir, kg_dir
 
 
@@ -164,6 +165,7 @@ def export_mermaid(connection: sqlite3.Connection, out_path: Path, relation: str
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--root", default=str(DEFAULT_ROOT), help="Praxis root for governance checks")
     parser.add_argument("--db", default=str(DEFAULT_DB), help="Path to SkillGraph SQLite database")
     parser.add_argument("--out", default=str(DEFAULT_EXPORT), help="Output path")
     parser.add_argument("--format", choices=["markdown", "mermaid"], default="markdown")
@@ -172,7 +174,23 @@ def main() -> int:
     parser.add_argument("--include-inactive", action="store_true", help="Include deprecated/reverted graph objects.")
     parser.add_argument("--fail-on-open-conflicts", action="store_true", help="Refuse export when unresolved conflicts exist.")
     parser.add_argument("--include-conflict-notes", action="store_true", help="Include open conflict warnings in Markdown exports.")
+    parser.add_argument("--strict-governance", action="store_true", help="Refuse export when Core governance checks find warnings or errors.")
+    parser.add_argument(
+        "--governance-threshold",
+        choices=["warn", "error"],
+        default="warn",
+        help="With --strict-governance, choose whether warnings or only errors block export.",
+    )
     args = parser.parse_args()
+
+    if args.strict_governance:
+        checks = run_governance_doctor(Path(args.root))
+        failed_checks = blocking_governance_checks(checks, threshold=args.governance_threshold)
+        if failed_checks:
+            print("Refusing graph export because governance strict checks found issue(s).")
+            for check in failed_checks:
+                print(f"- {check.check_id}: {check.status} ({check.severity}) - {check.summary}")
+            return 2
 
     with connect(Path(args.db)) as connection:
         ensure_audit_schema(connection)

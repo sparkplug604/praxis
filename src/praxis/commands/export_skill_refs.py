@@ -8,6 +8,7 @@ import sqlite3
 from pathlib import Path
 
 from conflict_ledger import open_conflict_count, open_conflict_rows
+from praxis.governance.doctor import blocking_governance_checks, run_governance_doctor
 from praxis.paths import db_dir, default_root, exports_dir, kg_dir, skills_dir
 
 
@@ -244,6 +245,13 @@ def main() -> int:
     parser.add_argument("--kg-db", default="", help="SkillGraph DB used for conflict safety checks.")
     parser.add_argument("--fail-on-open-conflicts", action="store_true", help="Refuse skill export when unresolved conflicts exist.")
     parser.add_argument("--include-conflict-notes", action="store_true", help="Write open conflict warnings into skill references.")
+    parser.add_argument("--strict-governance", action="store_true", help="Refuse export when Core governance checks find warnings or errors.")
+    parser.add_argument(
+        "--governance-threshold",
+        choices=["warn", "error"],
+        default="warn",
+        help="With --strict-governance, choose whether warnings or only errors block export.",
+    )
     args = parser.parse_args()
 
     root = Path(args.root)
@@ -252,6 +260,15 @@ def main() -> int:
     kg_db = Path(args.kg_db) if args.kg_db else kg_dir(root) / "skill_graph.sqlite"
     out_dir = exports_dir(root)
     skill_refs = skill / "references"
+
+    if args.strict_governance:
+        checks = run_governance_doctor(root)
+        failed_checks = blocking_governance_checks(checks, threshold=args.governance_threshold)
+        if failed_checks:
+            print("Refusing skill export because governance strict checks found issue(s).")
+            for check in failed_checks:
+                print(f"- {check.check_id}: {check.status} ({check.severity}) - {check.summary}")
+            return 2
 
     conflict_count = 0
     if kg_db.exists():

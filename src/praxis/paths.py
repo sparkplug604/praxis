@@ -129,6 +129,14 @@ def agency_dir(root: Path | str | None = None) -> Path:
     return runtime_dir(root, "agency")
 
 
+def authority_dir(root: Path | str | None = None) -> Path:
+    return runtime_dir(root, "authority")
+
+
+def governance_dir(root: Path | str | None = None) -> Path:
+    return runtime_dir(root, "governance")
+
+
 def ensure_workspace_dirs(root: Path | str | None = None) -> list[Path]:
     workspace = workspace_root(root)
     paths = [
@@ -149,6 +157,9 @@ def ensure_workspace_dirs(root: Path | str | None = None) -> list[Path]:
         workspace / "reach",
         workspace / "agency" / "clients",
         workspace / "agency" / "lifecycle",
+        workspace / "authority" / "bundles",
+        workspace / "authority" / "manifests",
+        workspace / "governance",
     ]
     for path in paths:
         path.mkdir(parents=True, exist_ok=True)
@@ -169,6 +180,8 @@ def legacy_runtime_paths(root: Path | str | None = None) -> dict[str, Path]:
         "notes": base / "notes",
         "reach": base / "reach",
         "agency": base / "agency",
+        "authority": base / "authority",
+        "governance": base / "governance",
     }
 
 
