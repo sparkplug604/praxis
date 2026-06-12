@@ -37,6 +37,10 @@ workspace/agency/clients/**
 !workspace/agency/clients/.gitkeep
 workspace/agency/lifecycle/**
 !workspace/agency/lifecycle/.gitkeep
+workspace/authority/**
+!workspace/authority/.gitkeep
+workspace/governance/**
+!workspace/governance/.gitkeep
 
 # Legacy generated paths kept for one-release migration compatibility.
 vectors/*.sqlite
@@ -62,3 +66,7 @@ agency/clients/**
 !agency/clients/.gitkeep
 agency/lifecycle/**
 !agency/lifecycle/.gitkeep
+authority/**
+!authority/.gitkeep
+governance/**
+!governance/.gitkeep

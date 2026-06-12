@@ -6,9 +6,12 @@ from __future__ import annotations
 import argparse
 import json
 import sqlite3
+from collections.abc import Mapping
 from pathlib import Path
 
 from praxis.context_priority import score_context_priority
+from praxis.entities.retrieval import accepted_entity_links_for_chunk, entity_hints_for_query, entity_scores_for_chunks
+from praxis.governance.policy import search_result_governance_warnings
 
 from conflict_ledger import open_conflicts_for_objects
 from graph_audit import LIVE_STATUSES
@@ -123,27 +126,36 @@ def chunk_metadata(row: sqlite3.Row) -> dict:
     return value if isinstance(value, dict) else {}
 
 
-def combine_hits(vector_results: list[dict], keyword_results: list[dict], nodes: list[sqlite3.Row], weights: dict[str, float]) -> list[dict]:
+def combine_hits(
+    vector_results: list[dict],
+    keyword_results: list[dict],
+    nodes: list[sqlite3.Row],
+    weights: dict[str, float],
+    entity_scores: Mapping[str, float] | None = None,
+) -> list[dict]:
     combined: dict[str, dict] = {}
     max_vector = max([hit["score"] for hit in vector_results], default=1.0) or 1.0
     max_keyword = max([hit["score"] for hit in keyword_results], default=1.0) or 1.0
 
     for hit in vector_results:
         chunk_id = hit["row"]["id"]
-        entry = combined.setdefault(chunk_id, {"row": hit["row"], "vector": 0.0, "keyword": 0.0, "graph": 0.0})
+        entry = combined.setdefault(chunk_id, {"row": hit["row"], "vector": 0.0, "keyword": 0.0, "graph": 0.0, "entity": 0.0})
         entry["vector"] = max(entry["vector"], hit["score"] / max_vector)
 
     for hit in keyword_results:
         chunk_id = hit["row"]["id"]
-        entry = combined.setdefault(chunk_id, {"row": hit["row"], "vector": 0.0, "keyword": 0.0, "graph": 0.0})
+        entry = combined.setdefault(chunk_id, {"row": hit["row"], "vector": 0.0, "keyword": 0.0, "graph": 0.0, "entity": 0.0})
         entry["keyword"] = max(entry["keyword"], hit["score"] / max_keyword)
 
     for entry in combined.values():
+        chunk_id = entry["row"]["id"]
         entry["graph"] = graph_score(entry["row"], nodes)
+        entry["entity"] = float((entity_scores or {}).get(chunk_id, 0.0))
         entry["relevance"] = (
             weights["vector"] * entry["vector"]
             + weights["keyword"] * entry["keyword"]
             + weights["graph"] * entry["graph"]
+            + weights.get("entity", 0.0) * entry["entity"]
         )
         entry["score"] = entry["relevance"]
         entry["priority"] = entry["relevance"]
@@ -228,7 +240,8 @@ def print_explanation(item: dict, nodes: list[sqlite3.Row]) -> None:
         f"relevance={item['relevance']:.3f}; "
         f"vector={item['vector']:.3f}; "
         f"keyword={item['keyword']:.3f}; "
-        f"graph={item['graph']:.3f}"
+        f"graph={item['graph']:.3f}; "
+        f"entity={item.get('entity', 0.0):.3f}"
     )
     breakdown = item.get("priority_breakdown") or {}
     if breakdown:
@@ -262,6 +275,19 @@ def print_explanation(item: dict, nodes: list[sqlite3.Row]) -> None:
     links = chunk_graph_links(row)
     if links:
         print(f"   graph_links: {', '.join(links[:8])}")
+    entity_links = item.get("entity_links") or []
+    if entity_links:
+        print("   entity_links:")
+        for link in entity_links[:8]:
+            print(
+                "   - "
+                f"{link.get('resolved_node_id')} ({link.get('entity_type')}): {link.get('surface_text')} evidence={link.get('evidence_annotation_id') or '-'}"
+            )
+    governance_warnings = search_result_governance_warnings(row)
+    if governance_warnings:
+        print("   governance_warnings:")
+        for warning in governance_warnings:
+            print(f"   - {warning}")
     if nodes:
         hints = ", ".join(node["id"] for node in nodes[:8])
         print(f"   graph_hints_used: {hints}")
@@ -291,6 +317,8 @@ def result_log_payload(item: dict) -> dict:
         "vector": round(float(item["vector"]), 6),
         "keyword": round(float(item["keyword"]), 6),
         "graph": round(float(item["graph"]), 6),
+        "entity": round(float(item.get("entity", 0.0)), 6),
+        "entity_links": item.get("entity_links", []),
         "conflict_count": len(item.get("conflicts", [])),
         "priority_breakdown": item.get("priority_breakdown", {}),
         "graph_links": chunk_graph_links(row),
@@ -321,7 +349,8 @@ def print_results(
         row = item["row"]
         print(
             f"{idx}. [p={item['priority']:.3f} r={item['relevance']:.3f}] {row['title']} "
-            f"(v={item['vector']:.2f}, k={item['keyword']:.2f}, g={item['graph']:.2f})"
+            f"(v={item['vector']:.2f}, k={item['keyword']:.2f}, "
+            f"g={item['graph']:.2f}, e={item.get('entity', 0.0):.2f})"
         )
         print(f"   chunk_id: {row['id']}")
         if row["section"]:
@@ -395,6 +424,8 @@ def main() -> int:
     parser.add_argument("--vector-weight", type=float, default=0.45)
     parser.add_argument("--keyword-weight", type=float, default=0.45)
     parser.add_argument("--graph-weight", type=float, default=0.10)
+    parser.add_argument("--entity-aware", action="store_true", help="Use resolved entity mentions as an additional retrieval signal.")
+    parser.add_argument("--entity-weight", type=float, default=0.15)
     parser.add_argument(
         "--rank-by",
         choices=["priority", "relevance"],
@@ -421,12 +452,22 @@ def main() -> int:
         vectors = vector_hits(connection, args.query, provider=args.provider, model=model, dimensions=dimensions, limit=args.candidate_limit)
         keywords = keyword_hits(connection, args.query, limit=args.candidate_limit)
         weights = {"vector": args.vector_weight, "keyword": args.keyword_weight, "graph": args.graph_weight}
+        entity_scores: dict[str, float] = {}
+        if args.entity_aware:
+            hints = entity_hints_for_query(Path(args.db), Path(args.kg_db), args.query, limit=args.limit)
+            candidate_chunk_ids = sorted({hit["row"]["id"] for hit in [*vectors, *keywords]})
+            entity_scores = entity_scores_for_chunks(Path(args.db), candidate_chunk_ids, hints)
+            weights["entity"] = args.entity_weight
         results = combine_hits(
             vectors,
             keywords,
             nodes,
             weights,
+            entity_scores=entity_scores,
         )
+        if args.entity_aware:
+            for item in results:
+                item["entity_links"] = accepted_entity_links_for_chunk(Path(args.db), item["row"]["id"])
         results = annotate_context_priority(results, nodes, kg_db=Path(args.kg_db), rank_by=args.rank_by)
         log_retrieval(connection, args.query, identifier, results, nodes, weights)
 
