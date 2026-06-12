@@ -31,6 +31,10 @@ This is the route map for Praxis documentation.
 - [Core: first source](tutorials/core/first-source.md)
 - [Reach: fixture demo](tutorials/reach/fixture-demo.md)
 - [Agency: fixture demo](tutorials/agency/fixture-demo.md)
+
+## Evaluation Guides
+
+- [Evaluators index](evaluators/README.md)
 - [Agency GTM Evaluation Guide](modules/agency/evaluation.md)
 
 ## Connectors
