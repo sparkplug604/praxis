@@ -19,7 +19,7 @@ python3 -m praxis demo reach
 ## What To Read Next
 
 1. [Praxis Reach](../modules/reach/README.md): what Reach stores and the main commands.
-2. [Reach fixture demo](../tutorials/reach-fixture-demo.md): inspect fixture evidence and build a context pack.
+2. [Reach fixture demo](../tutorials/reach/fixture-demo.md): inspect fixture evidence and build a context pack.
 3. [Connector docs](../README.md#connectors): review current connector setup notes.
 4. [Troubleshooting](../troubleshooting.md): diagnose credentials, search, setup, or ingest issues.
 

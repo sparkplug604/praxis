@@ -20,7 +20,7 @@ python3 -m praxis demo agency
 
 1. [Praxis Reach for Agencies](../modules/agency/README.md): how client capsules and multi-client runs work.
 2. [Agency GTM Evaluation Guide](../modules/agency/evaluation.md): the fastest path for evaluating the agency model.
-3. [Agency fixture demo](../tutorials/agency-fixture-demo.md): inspect two fixture-backed clients.
+3. [Agency fixture demo](../tutorials/agency/fixture-demo.md): inspect two fixture-backed clients.
 4. [Praxis Reach](../modules/reach/README.md): understand the evidence card and context pack layer underneath Agency.
 
 ## What Success Looks Like

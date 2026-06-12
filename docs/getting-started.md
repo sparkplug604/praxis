@@ -129,9 +129,9 @@ Module docs:
 
 Tutorials:
 
-- [Core: ingest and search your first source](tutorials/core-first-source.md)
-- [Reach: run the fixture GTM demo](tutorials/reach-fixture-demo.md)
-- [Agency: run a multi-client fixture demo](tutorials/agency-fixture-demo.md)
+- [Core: ingest and search your first source](tutorials/core/first-source.md)
+- [Reach: run the fixture GTM demo](tutorials/reach/fixture-demo.md)
+- [Agency: run a multi-client fixture demo](tutorials/agency/fixture-demo.md)
 
 Support:
 
