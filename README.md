@@ -18,9 +18,9 @@ Praxis gives agents a way to build on what they learn without dragging a giant c
 | --- | --- | --- | --- |
 | [**Praxis Core**](docs/modules/core/README.md) | Turns source material into searchable memory, traceable evidence, SkillGraph knowledge, and reusable agent instructions. | RAG, agent memory, research libraries, coding agents, skill systems. | Available |
 | [**Praxis Reach**](docs/modules/reach/README.md) | Adds a zero-copy live-data layer for operational systems through read-only connectors, query manifests, evidence cards, and context packs. | Teams that want agents to use CRM, ads, analytics, or operational data without cloning source systems. | Experimental |
-| [**Praxis Reach for Agencies**](docs/modules/reach-for-agencies/README.md) | Adds per-client capsules so agencies can run reusable workflows across clients with different stacks, metrics, permissions, and field maps. | Agencies, GTM teams, consultants, multi-client operators. | Experimental |
+| [**Praxis Reach for Agencies**](docs/modules/agency/README.md) | Adds per-client capsules so agencies can run reusable workflows across clients with different stacks, metrics, permissions, and field maps. | Agencies, GTM teams, consultants, multi-client operators. | Experimental |
 
-For agency/GTM evaluation, start with the [Agency GTM Evaluation Guide](docs/evaluators/agency-gtm-evaluation.md).
+For agency/GTM evaluation, start with the [Agency GTM Evaluation Guide](docs/modules/agency/evaluation.md).
 
 ## Repository Map
 
@@ -218,7 +218,7 @@ Pick the first win that matches your use case:
 | --- | --- | --- |
 | Turn docs/research into searchable agent knowledge. | `praxis demo core` | [Praxis Core](docs/modules/core/README.md) |
 | Try live-data-style evidence without credentials. | `praxis demo reach` | [Praxis Reach](docs/modules/reach/README.md) |
-| Evaluate the agency / GTM workflow. | `praxis demo agency` | [Agency GTM Evaluation Guide](docs/evaluators/agency-gtm-evaluation.md) |
+| Evaluate the agency / GTM workflow. | `praxis demo agency` | [Agency GTM Evaluation Guide](docs/modules/agency/evaluation.md) |
 
 For guided setup:
 
@@ -248,10 +248,13 @@ Full command reference: [docs/cli.md](docs/cli.md)
 Module docs:
 
 - [Docs Index](docs/README.md)
+- [Core Path](docs/paths/core.md)
+- [Reach Path](docs/paths/reach.md)
+- [Agency Path](docs/paths/agency.md)
 - [Praxis Core](docs/modules/core/README.md)
 - [Praxis Reach](docs/modules/reach/README.md)
-- [Praxis Reach for Agencies](docs/modules/reach-for-agencies/README.md)
-- [Agency GTM Evaluation Guide](docs/evaluators/agency-gtm-evaluation.md)
+- [Praxis Reach for Agencies](docs/modules/agency/README.md)
+- [Agency GTM Evaluation Guide](docs/modules/agency/evaluation.md)
 
 ## What Works Today
 
