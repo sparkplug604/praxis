@@ -111,14 +111,28 @@ status: ok
 context_pack: /path/to/workspace/reach/context_packs/...
 ```
 
-## Tutorials
+## Next Docs
+
+Paths:
 
 - [Docs index](README.md)
+- [Core Path](paths/core.md)
+- [Reach Path](paths/reach.md)
+- [Agency Path](paths/agency.md)
+
+Module docs:
+
 - [Praxis Core](modules/core/README.md)
 - [Praxis Reach](modules/reach/README.md)
-- [Praxis Reach for Agencies](modules/reach-for-agencies/README.md)
-- [Agency GTM Evaluation Guide](evaluators/agency-gtm-evaluation.md)
-- [Core: ingest and search your first source](tutorials/core-first-source.md)
-- [Reach: run the fixture GTM demo](tutorials/reach-fixture-demo.md)
-- [Agency: run a multi-client fixture demo](tutorials/agency-fixture-demo.md)
+- [Praxis Reach for Agencies](modules/agency/README.md)
+- [Agency GTM Evaluation Guide](modules/agency/evaluation.md)
+
+Tutorials:
+
+- [Core: ingest and search your first source](tutorials/core/first-source.md)
+- [Reach: run the fixture GTM demo](tutorials/reach/fixture-demo.md)
+- [Agency: run a multi-client fixture demo](tutorials/agency/fixture-demo.md)
+
+Support:
+
 - [Troubleshooting](troubleshooting.md)

@@ -1,31 +1,37 @@
 # Praxis Docs
 
-This is the map for the Praxis documentation.
+This is the route map for Praxis documentation.
 
 ## Start Here
 
-- [Getting Started](getting-started.md): install, setup paths, demos, and first wins.
-- [Troubleshooting](troubleshooting.md): Windows/PATH issues, missing tables, credentials, and search setup.
-- [CLI Reference](cli.md): command groups and examples.
-- [Praxis Intake](modules/core/intake.md): source detection, file conversion, parse quality, and optional parser dependencies.
-- [Praxis Authority Anchors](modules/core/authority.md): source-of-record rules, freshness checks, and adjudication records.
-- [Praxis Core Governance](modules/core/governance.md): evidence reuse checks, governance health checks, search/export warnings, and hash-chain receipts.
+| If You Want To... | Start Here |
+| --- | --- |
+| Install Praxis and run a first demo. | [Getting Started](getting-started.md) |
+| Turn source material into searchable agent knowledge. | [Core Path](paths/core.md) |
+| Try source-linked GTM evidence and context packs. | [Reach Path](paths/reach.md) |
+| Evaluate multi-client GTM workflows. | [Agency Path](paths/agency.md) |
+| Look up commands and options. | [CLI Reference](cli.md) |
+| Diagnose install, PATH, SQLite, search, or credential issues. | [Troubleshooting](troubleshooting.md) |
 
 ## Modules
 
 - [Praxis Core](modules/core/README.md): source capture, evidence, chunking, search, SkillGraph memory, conflicts, rollback, and skill export.
 - [Praxis Reach](modules/reach/README.md): read-only operational evidence, query manifests, evidence cards, freshness, and context packs.
-- [Praxis Reach for Agencies](modules/reach-for-agencies/README.md): client capsules, multi-client GTM workflows, fixture demos, and client lifecycle guardrails.
+- [Praxis Reach for Agencies](modules/agency/README.md): client capsules, multi-client GTM workflows, fixture demos, and client lifecycle guardrails.
 
-## Evaluation Guides
+## Core Concepts
 
-- [Agency GTM Evaluation Guide](evaluators/agency-gtm-evaluation.md): the fastest path for an agency or GTM engineer to evaluate the Reach/Agency model.
+- [Praxis Intake](modules/core/intake.md): source detection, file conversion, parse quality, and optional parser dependencies.
+- [Praxis Authority Anchors](modules/core/authority.md): source-of-record rules, freshness checks, and adjudication records.
+- [Praxis Core Governance](modules/core/governance.md): evidence reuse checks, governance health checks, search/export warnings, and hash-chain receipts.
 
 ## Tutorials
 
-- [Core: first source](tutorials/core-first-source.md)
-- [Reach: fixture demo](tutorials/reach-fixture-demo.md)
-- [Agency: fixture demo](tutorials/agency-fixture-demo.md)
+- [Tutorials index](tutorials/README.md)
+- [Core: first source](tutorials/core/first-source.md)
+- [Reach: fixture demo](tutorials/reach/fixture-demo.md)
+- [Agency: fixture demo](tutorials/agency/fixture-demo.md)
+- [Agency GTM Evaluation Guide](modules/agency/evaluation.md)
 
 ## Connectors
 
