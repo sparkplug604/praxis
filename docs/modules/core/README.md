@@ -4,22 +4,17 @@ Praxis Core is the local knowledge layer at the heart of Praxis.
 
 It turns documents, research, web pages, local files, project notes, and lessons from real work into searchable, source-traceable, reusable agent knowledge.
 
-Core is where Praxis handles:
+Core is where Praxis handles source intake, capture, retrieval, graph memory, entity-aware evidence, conflict review, governance, rollback, and skill/reference export.
 
-- source detection and intake conversion;
-- source capture;
-- raw evidence preservation;
-- summaries and metadata;
-- structure-aware chunking;
-- embeddings;
-- hybrid search;
-- SkillGraph updates;
-- conflict and dedupe records;
-- entity-aware evidence annotations;
-- authority anchors for source-of-record checks;
-- governance checks and hash-chain receipts;
-- rollback;
-- skill/reference export.
+The main surfaces are:
+
+| Area | What Core Handles |
+| --- | --- |
+| Ingestion | Source detection, conversion, capture, raw evidence, summaries, metadata, chunking, and embeddings. |
+| Retrieval | Hybrid search across vector hits, keyword hits, SkillGraph hints, optional entity-aware hints, and context-priority scoring. |
+| Evidence | Source IDs, capture IDs, graph links, entity-aware evidence annotations, and explanation output. |
+| Hygiene | Conflict records, dedupe records, authority anchors, governance checks, rollback, and hash-chain receipts. |
+| Reuse | SkillGraph updates, Markdown reference export, and skill-supporting files. |
 
 ## What Core Is For
 
@@ -52,6 +47,18 @@ flowchart LR
 Core does not treat captured text as automatically true. It stores the evidence, records how knowledge entered the system, and makes changes reversible.
 
 Intake runs before capture. It detects file type, chooses a converter, preserves converter metadata, and records parse-quality warnings. It can also create source-linked media evidence from transcripts, keyframes, OCR, speaker turns, and visual embeddings when optional local adapters are installed. See [Praxis Intake](intake.md).
+
+## Core Deep Dives
+
+Use these pages when you want to understand why Praxis Core behaves differently from a typical RAG stack:
+
+- [How Praxis Core Is Different](how-core-is-different.md): the short comparison against plain chunk-and-vector retrieval.
+- [Core Architecture](core-architecture.md): the local workspace, SQLite control plane, package layout, and runtime boundaries.
+- [Ingestion Pipeline](ingestion-pipeline.md): how sources become captures, provisional graph changes, chunks, embeddings, and entity-aware evidence.
+- [Retrieval Pipeline](retrieval-pipeline.md): how Core combines vector, keyword, graph, entity, trust, freshness, status, and conflict signals.
+- [Entity-Aware Evidence](entity-aware-evidence.md): how entity mentions become accepted evidence annotations such as `ann:...`.
+- [Maintenance And Hygiene](maintenance-and-hygiene.md): how Core keeps local knowledge inspectable, reversible, and reviewable.
+- [Conflicts And Dedupe](conflicts-and-dedupe.md): how duplicate and contradictory knowledge is surfaced and resolved.
 
 ## First Run
 

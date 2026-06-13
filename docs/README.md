@@ -25,6 +25,16 @@ This is the route map for Praxis documentation.
 - [Praxis Authority Anchors](modules/core/authority.md): source-of-record rules, freshness checks, and adjudication records.
 - [Praxis Core Governance](modules/core/governance.md): evidence reuse checks, governance health checks, search/export warnings, and hash-chain receipts.
 
+## Core Deep Dives
+
+- [How Praxis Core Is Different](modules/core/how-core-is-different.md)
+- [Core Architecture](modules/core/core-architecture.md)
+- [Ingestion Pipeline](modules/core/ingestion-pipeline.md)
+- [Retrieval Pipeline](modules/core/retrieval-pipeline.md)
+- [Entity-Aware Evidence](modules/core/entity-aware-evidence.md)
+- [Maintenance And Hygiene](modules/core/maintenance-and-hygiene.md)
+- [Conflicts And Dedupe](modules/core/conflicts-and-dedupe.md)
+
 ## Tutorials
 
 - [Tutorials index](tutorials/README.md)

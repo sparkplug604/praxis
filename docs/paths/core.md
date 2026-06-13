@@ -19,10 +19,11 @@ python3 -m praxis demo core
 ## What To Read Next
 
 1. [Praxis Core](../modules/core/README.md): what Core does and the main commands.
-2. [Core first source tutorial](../tutorials/core/first-source.md): ingest and search one source.
-3. [Praxis Intake](../modules/core/intake.md): how source detection and conversion work.
-4. [Praxis Authority Anchors](../modules/core/authority.md): how source-of-record rules are represented.
-5. [Praxis Core Governance](../modules/core/governance.md): how evidence reuse, receipts, and warnings work.
+2. [How Praxis Core Is Different](../modules/core/how-core-is-different.md): why Core is more than plain chunk-and-vector retrieval.
+3. [Core first source tutorial](../tutorials/core/first-source.md): ingest and search one source.
+4. [Ingestion Pipeline](../modules/core/ingestion-pipeline.md): how sources become captures, chunks, embeddings, and entity-aware evidence.
+5. [Retrieval Pipeline](../modules/core/retrieval-pipeline.md): how search ranks context using vector, keyword, graph, entity, trust, freshness, status, and conflict signals.
+6. [Entity-Aware Evidence](../modules/core/entity-aware-evidence.md): how mentions become evidence annotations such as `ann:...`.
 
 ## What Success Looks Like
 
