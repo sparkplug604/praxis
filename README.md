@@ -32,7 +32,7 @@ Praxis keeps source-controlled product files separate from generated local data.
 | `docs/` | User guides, module docs, tutorials, connector setup notes, and architecture references. |
 | `examples/` | Small source-controlled examples. Generated demo output should not live here. |
 | `tests/` | Unit and CLI smoke tests for Core, Reach, Agency, intake, governance, and migration behavior. |
-| `adapters/` | Notes and future integration surfaces for agent runtimes and frameworks. |
+| `adapters/` | Optional agent-runtime and framework bridge notes. Not required for first run. |
 | `scripts/` | Thin compatibility wrappers around the package CLI commands. |
 | `bootstrap/` | Source-controlled starter schemas and seed data used to initialize a fresh checkout. |
 | `workspace/` | Local generated runtime state: SQLite DBs, captures, vectors, evidence cards, context packs, client capsules, exports, notes, watchlists, and generated skills. Most files here are git-ignored. |
