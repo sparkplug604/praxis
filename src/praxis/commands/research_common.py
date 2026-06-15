@@ -88,7 +88,7 @@ def infer_source_type(source: str, text: str) -> str:
 
 
 def credibility_score(source_type: str, metadata: dict[str, Any]) -> int:
-    if source_type in {"repo", "package", "paper", "docs"}:
+    if source_type in {"repo", "package", "paper", "docs", "survey"}:
         return 4
     if source_type == "local":
         return 3
