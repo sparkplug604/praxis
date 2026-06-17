@@ -1,30 +1,85 @@
 # Praxis
 
-Praxis gives AI agents trusted access to company knowledge, operational data, and client history.
+Praxis gives AI agents shared organizational memory.
 
-Built for teams using AI agents with CRM systems, operational data, documentation, and client-facing workflows. It turns scattered sources into searchable, source-traceable context that agents can inspect, explain, and reuse.
+Most organizations have important knowledge spread across CRMs, documents, spreadsheets, analytics tools, support systems, meetings, internal notes, and historical decisions. An agent can be smart and still be blind if it only sees one pasted file, one stale export, or one narrow database.
 
-Unlike traditional RAG systems that retrieve chunks and stop, Praxis preserves provenance, trust, freshness, conflicts, and change history so agents can work from evidence instead of isolated documents.
+Praxis turns scattered knowledge, operational data, and history into searchable, source-linked context that agents can inspect, explain, and reuse.
 
-Praxis Core runs locally today. Praxis Reach and Reach for Agencies extend that model to operational systems and multi-client workflows. Praxis is not a hosted service, CRM, warehouse, BI tool, or autonomous agent runtime.
+It is designed for teams whose work depends on context across disconnected systems: legal firms, managed service firms, healthcare organizations, security teams, product teams, enterprise marketing teams, agencies, consultants, and internal operations teams.
+
+Praxis Core runs locally today. Praxis Reach and Reach for Agencies extend that model toward live operational systems and multi-client workflows. Praxis is not a hosted service, CRM, warehouse, BI tool, or autonomous agent runtime.
+
+## Why Praxis Exists
+
+Claude, ChatGPT, and other agents can reason, write, summarize, and act. But they still need the right business memory.
+
+If the answer depends on customer history, operational data, prior decisions, source documents, account notes, incident records, case files, or campaign results, the agent needs more than a prompt. It needs a way to find the right context, understand where it came from, notice when sources disagree, and keep useful knowledge available for the next task.
+
+Praxis is that context layer.
+
+Example questions Praxis is designed to support:
+
+| Team | A Question An Agent Might Need Context For |
+| --- | --- |
+| Agency or marketing team | Which campaigns produced paying customers last quarter? |
+| Legal firm | What prior matters, research, filings, and client notes are relevant to this case? |
+| Security team | What happened in similar incidents, and which response steps were used? |
+| Product team | Which customer complaints, roadmap decisions, support tickets, and release notes connect to this feature? |
+| Managed service firm | What does this client run, what changed recently, and what has broken before? |
+| Healthcare or operations team | Which policies, handoffs, reports, and historical decisions matter for this workflow? |
 
 ## What Makes Praxis Different
 
-Most RAG systems retrieve similar chunks and stop there. Praxis adds the working-memory layer around retrieval.
+Praxis is not just a folder of documents and not just a vector search demo. It is built around the idea that agents should work from memory they can inspect.
 
-- **Provenance by default**: source IDs, capture IDs, hashes, parse quality, confidence, and source metadata stay attached.
-- **Context-priority ranking**: search can combine semantic, keyword, graph, entity, trust, freshness, status, and conflict signals.
-- **Warning lights for disagreement**: conflicts can be logged and surfaced instead of silently hidden inside an answer.
-- **Rollbackable memory changes**: provisional SkillGraph updates are tracked through change sets, dedupe records, and rollback paths.
-- **Agent reuse**: reviewed knowledge can be exported into Markdown references and skill-supporting files.
+| A Normal RAG Setup Often... | Praxis Adds... |
+| --- | --- |
+| Finds similar text chunks. | Ranks context using relevance, source state, freshness, trust, graph signals, entity hints, and conflicts. |
+| Gives an answer without enough trail. | Keeps source IDs, capture IDs, hashes, parse quality, confidence, and metadata attached. |
+| Treats all retrieved text like it is equally current. | Tracks freshness, active/deprecated status, and source-level trust. |
+| Hides contradictions inside the final answer. | Can surface disagreements as warning lights instead of silently picking a winner. |
+| Solves one query at a time. | Lets reviewed knowledge become reusable references and agent-supporting files. |
+| Struggles with boundaries between clients, accounts, or projects. | Provides the foundation for scoped context capsules and multi-client workflows. |
+
+Put simply: Praxis helps an agent know what it knows, where it came from, whether it is still current, and when something looks disputed.
 
 Read more: [How Praxis Core Is Different](docs/modules/core/how-core-is-different.md), [Retrieval Pipeline](docs/modules/core/retrieval-pipeline.md), and [Conflicts And Dedupe](docs/modules/core/conflicts-and-dedupe.md).
 
-## How Praxis Turns Sources Into Agent Context
+## How Sources Become Agent Context
 
-![Praxis context-priority flow showing documents, data, audio, visual sources, live GTM evidence, indexes, ranking, and explained agent context](docs/assets/flows/praxis-context-priority-flow.png)
+```mermaid
+flowchart LR
+    sources["Sources<br/>docs, data, audio, video, live systems"]
+    capture["Capture<br/>source IDs, hashes, metadata"]
+    memory["Memory<br/>archive, graph, chunks, embeddings"]
+    ranking["Context ranking<br/>trust, freshness, relevance, conflicts"]
+    explained["Explained context<br/>source trail, warnings"]
+    agent["Agent-ready output<br/>answer, report, workflow"]
 
-The key difference is the middle of the diagram: Praxis does not treat retrieval as "nearest chunks only." It ranks context with provenance, trust, freshness, graph state, entity hints, and conflict signals attached.
+    sources --> capture --> memory --> ranking --> explained --> agent
+
+    classDef source fill:#f6f8fa,stroke:#8b949e,color:#24292f;
+    classDef core fill:#eef6ff,stroke:#0969da,color:#24292f;
+    classDef output fill:#fff8c5,stroke:#9a6700,color:#24292f;
+
+    class sources source;
+    class capture,memory,ranking core;
+    class explained,agent output;
+```
+
+Same flow in words:
+
+| Stage | What It Means |
+| --- | --- |
+| **Sources** | Docs, PDFs, notes, web pages, CSVs, tables, audio, video, and live systems enter the workspace. |
+| **Capture** | Praxis records where each source came from with IDs, hashes, metadata, and parse quality. |
+| **Memory** | Content becomes archived evidence, graph changes, chunks, and embeddings. |
+| **Ranking** | Praxis weighs relevance, trust, freshness, graph signals, entity hints, and conflicts. |
+| **Explained Context** | The agent gets context with source trails, priority breakdowns, and warnings. |
+| **Agent Output** | Claude or another agent answers, reports, references, or starts a workflow. |
+
+The important part is the ranking step. Praxis does not treat retrieval as "nearest chunks only." It keeps context tied to source history, trust, freshness, graph state, entity hints, and conflict signals so an agent can use the result with more awareness.
 
 ## See It Work
 
@@ -45,12 +100,12 @@ The search step returns an explained result. Read it as:
 | --- | --- |
 | What matched? | `Stack Overflow Developer Survey AI Tooling Mini Dataset` |
 | Why did it rank? | Strong semantic and keyword match, with graph context attached. |
-| Can I trust the source? | Praxis reports source trust, chunk trust, freshness, active/deprecated status, and conflict penalties. |
+| Can I inspect the source? | Praxis reports source trust, chunk trust, freshness, active/deprecated status, and conflict penalties. |
 | Are there warnings? | This demo result reports no open conflicts. |
 | Where did it come from? | `source_id: src:stackoverflow-dev-survey-ai-tooling-mini` and a matching `capture_id`. |
 | How was it ingested? | The result includes intake metadata such as converter, media type, and parse quality. |
 
-The raw CLI output includes numeric scoring fields because downstream tools and tests can use them. The human takeaway is simpler: Praxis shows why context ranked, where it came from, how fresh and trusted it is, and whether conflicts are present.
+The raw CLI output includes numeric scoring fields because downstream tools and tests can use them. The practical takeaway is simpler: Praxis shows why context ranked, where it came from, how fresh it is, how trusted it is, and whether conflicts are present.
 
 If `praxis` is not recognized after installation, use Python's module form:
 
@@ -88,10 +143,12 @@ More setup help lives in [Getting Started](docs/getting-started.md). If somethin
 
 | If You Want To... | Start Here | Status |
 | --- | --- | --- |
-| Turn docs, research, notes, and files into searchable agent knowledge. | [Core Path](docs/paths/core.md) | Available |
+| Run a local demo and see explained retrieval. | [Getting Started](docs/getting-started.md) | Available |
+| Turn docs, research, notes, and files into searchable agent memory. | [Core Path](docs/paths/core.md) | Available |
 | Understand why Core is more than chunk-and-vector retrieval. | [How Praxis Core Is Different](docs/modules/core/how-core-is-different.md) | Available |
-| Try source-linked GTM evidence and context packs without credentials. | [Reach Path](docs/paths/reach.md) | Experimental |
-| Evaluate repeatable multi-client GTM workflows. | [Agency GTM Evaluation Guide](docs/modules/agency/evaluation.md) | Experimental |
+| Try source-linked operational evidence and context packs without credentials. | [Reach Path](docs/paths/reach.md) | Experimental |
+| Evaluate repeatable multi-client workflows. | [Agency Evaluation Guide](docs/modules/agency/evaluation.md) | Experimental |
+| Understand how Praxis fits with LangChain, LangSmith, and Langflow. | [LangChain Ecosystem Fit](docs/integrations/langchain-langsmith-langflow.md) | Available |
 | Review the full command surface. | [CLI Reference](docs/cli.md) | Available |
 
 ## How The Pieces Fit
@@ -100,11 +157,11 @@ Praxis has three related layers.
 
 | Layer | What It Contributes |
 | --- | --- |
-| **Praxis Core** | Durable source knowledge: captures, chunks, embeddings, graph memory, conflict records, authority anchors, rollback, and skill/reference export. |
+| **Praxis Core** | Local source memory: captures, chunks, embeddings, graph memory, conflict records, authority anchors, rollback, and skill/reference export. |
 | **Praxis Reach** | Operational evidence: read-only connector contracts, query manifests, evidence cards, freshness checks, warnings, and compact context packs. |
-| **Reach for Agencies** | Client context: per-client capsules with systems, field maps, metrics, permissions, evidence, context packs, and lifecycle state. |
+| **Reach for Agencies** | Multi-client context: per-client capsules with systems, field maps, metrics, permissions, evidence, context packs, and lifecycle state. |
 
-The goal is not to copy every system into Praxis. The goal is to let agents work from compact, governed evidence while systems of record stay where they are.
+The goal is not to copy every system into Praxis. The goal is to let agents work from compact, source-linked context while systems of record stay where they are.
 
 For the deeper architecture, read:
 
