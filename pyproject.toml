@@ -117,10 +117,7 @@ praxis = "praxis.cli:main"
 package-dir = {"" = "src"}
 
 [tool.setuptools.package-data]
-praxis = [
-  "demo_data/stackoverflow_developer_survey/*",
-  "relationship_evidence/*.json",
-]
+praxis = ["demo_data/stackoverflow_developer_survey/*"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

@@ -7,6 +7,11 @@
   "generated_at_utc": "2026-06-14T06:55:17Z",
   "generated_files": [
     {
+      "bytes": 1846,
+      "path": "BUILD.md",
+      "sha256": "66cc70775bcfaac66e28e0da68416d03ec69e60e53d79dc9db6d3d0c9c5870f3"
+    },
+    {
       "bytes": 2161,
       "path": "README.md",
       "sha256": "a7a0a1e28014cbd5cbeed3f96c05922f11f182adcbb0b1f811a908d7d6565b8f"
