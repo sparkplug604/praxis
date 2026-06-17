@@ -18,6 +18,10 @@ graph, captures, evidence cards, and retrieval tools should not depend on Codex,
 Claude Code, LangGraph, LlamaIndex, Haystack, Mem0, or any other runtime. An
 adapter translates Praxis artifacts into the expectations of one target runtime.
 
+If you are trying to understand where Praxis fits beside LangChain, LangGraph,
+LangSmith, or Langflow, read
+[Praxis With LangChain, LangSmith, And Langflow](../docs/integrations/langchain-langsmith-langflow.md).
+
 ## What Belongs Here
 
 Use `adapters/` for runtime and framework integration notes, prototypes, and
@@ -65,7 +69,7 @@ An adapter should declare:
 
 - `agents/codex`: install Praxis skills into `~/.codex/skills`.
 - `agents/claude-code`: export/install Agent Skills for Claude Code.
-- `frameworks/langgraph`: expose Praxis retrieval/graph as LangGraph tools or nodes.
+- `frameworks/langgraph`: expose Praxis retrieval/graph as LangGraph tools or nodes. See [LangGraph Adapter Notes](frameworks/langgraph/README.md).
 - `frameworks/llamaindex`: expose Praxis as a reader, retriever, or tool.
 - `frameworks/haystack`: expose Praxis as components for pipelines.
 - `memory/mem0`: import/export selected memories and evidence.

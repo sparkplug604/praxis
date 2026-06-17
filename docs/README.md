@@ -21,9 +21,12 @@ This is the route map for Praxis documentation.
 
 ## Core Concepts
 
+- [How Praxis Relates To RAG, Skills, And Live Data](concepts/rag-skills-live-data.md): where Praxis fits beside RAG, vector databases, skills, BI tools, CRMs, and live systems.
+- [Praxis With LangChain, LangSmith, And Langflow](integrations/langchain-langsmith-langflow.md): how Praxis fits beside LangChain agents, LangGraph workflows, LangSmith traces/evals, and Langflow visual flows.
 - [Praxis Intake](modules/core/intake.md): source detection, file conversion, parse quality, and optional parser dependencies.
 - [Praxis Authority Anchors](modules/core/authority.md): source-of-record rules, freshness checks, and adjudication records.
 - [Praxis Core Governance](modules/core/governance.md): evidence reuse checks, governance health checks, search/export warnings, and hash-chain receipts.
+- [Trust, Traceability, And Rollback](concepts/trust-traceability-rollback.md): how Praxis keeps knowledge source-linked, conflict-aware, and reversible.
 
 ## Core Deep Dives
 
@@ -32,6 +35,7 @@ This is the route map for Praxis documentation.
 - [Ingestion Pipeline](modules/core/ingestion-pipeline.md)
 - [Retrieval Pipeline](modules/core/retrieval-pipeline.md)
 - [Entity-Aware Evidence](modules/core/entity-aware-evidence.md)
+- [Relationship Evidence](modules/core/relationship-evidence.md)
 - [Maintenance And Hygiene](modules/core/maintenance-and-hygiene.md)
 - [Conflicts And Dedupe](modules/core/conflicts-and-dedupe.md)
 
@@ -47,6 +51,12 @@ This is the route map for Praxis documentation.
 - [Evaluators index](evaluators/README.md)
 - [Agency GTM Evaluation Guide](modules/agency/evaluation.md)
 
+## Integrations
+
+- [Praxis With LangChain, LangSmith, And Langflow](integrations/langchain-langsmith-langflow.md)
+- [Praxis Adapters](../adapters/README.md)
+- [LangGraph Adapter Notes](../adapters/frameworks/langgraph/README.md)
+
 ## Connectors
 
 - [HubSpot](connectors/hubspot.md)
@@ -57,6 +67,7 @@ This is the route map for Praxis documentation.
 ## Architecture
 
 - [Architecture Notes](architecture.md)
+- [How Knowledge Moves Through Praxis](architecture/knowledge-flows.md)
 
 ## Releases
 

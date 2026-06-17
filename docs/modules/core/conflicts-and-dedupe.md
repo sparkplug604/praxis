@@ -26,6 +26,15 @@ Core can record conflicts for:
 - claim-like contradictions;
 - operational evidence disagreement from Reach.
 
+Relationship Evidence also has a narrower review queue for relationship-promotion issues, such as one-to-one cardinality conflicts. Those review items are managed with:
+
+```bash
+praxis relationship-evidence review list
+praxis relationship-evidence review show "relationship-review:..."
+```
+
+Use the conflict ledger for broad source, graph, entity, and evidence conflicts. Use Relationship Evidence review items for extracted relationship candidates that need inspection before promotion.
+
 ## Inspecting Conflicts
 
 Use:

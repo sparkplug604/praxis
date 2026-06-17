@@ -129,6 +129,7 @@ More setup help lives in [Getting Started](docs/getting-started.md). If somethin
 | Core source capture, ingest, chunking, local embeddings, hybrid search | Works locally |
 | Context-priority ranking and `--explain` output | Works locally |
 | SkillGraph changes, conflict ledger, dedupe, rollback | Works locally |
+| Relationship Evidence relationship extraction, review, and query | Works locally |
 | Skill/reference export | Works locally |
 | Reach fixture evidence and context packs | Works locally |
 | Agency fixture demo and client capsules | Works locally |
