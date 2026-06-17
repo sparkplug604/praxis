@@ -158,6 +158,19 @@ praxis entities annotation "ann:..."
 
 `praxis entities` stores raw mentions in the semantic index, resolves them against SkillGraph node names and aliases, and creates source-linked evidence annotations for accepted matches.
 
+Extract, promote, review, and query relationship evidence:
+
+```bash
+praxis relationship-evidence extract
+praxis relationship-evidence promote
+praxis relationship-evidence review list
+praxis relationship-evidence review show "relationship-review:..."
+praxis relationship-evidence query --subject "Acme" --predicate acquired
+praxis relationship-evidence compare "Acme Corp" "Beta Corp"
+```
+
+`praxis relationship-evidence` turns chunk-level relationship claims into reviewable relation candidates, accepted graph edges, evidence annotations, and relationship review items.
+
 Capture a source and auto-apply provisional graph memory:
 
 ```bash

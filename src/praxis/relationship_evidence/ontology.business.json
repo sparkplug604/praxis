@@ -1,0 +1,108 @@
+{
+  "id": "praxis.business.relationships",
+  "version": "2026-06-16",
+  "description": "Default business-oriented relationship ontology for Praxis relationship evidence.",
+  "entity_types": [
+    "organization",
+    "person",
+    "location",
+    "product",
+    "role",
+    "document",
+    "account",
+    "opportunity",
+    "unknown"
+  ],
+  "predicates": [
+    {
+      "id": "acquired",
+      "label": "acquired",
+      "aliases": ["acquired", "bought", "purchased"],
+      "subject_types": ["organization", "account", "unknown"],
+      "object_types": ["organization", "account", "unknown"],
+      "cardinality": "many",
+      "description": "An organization acquired another organization or account."
+    },
+    {
+      "id": "owned_by",
+      "label": "owned by",
+      "aliases": ["owned by", "controlled by"],
+      "subject_types": ["organization", "product", "account", "unknown"],
+      "object_types": ["organization", "person", "account", "unknown"],
+      "cardinality": "one",
+      "description": "An entity is owned or controlled by another entity."
+    },
+    {
+      "id": "led_by",
+      "label": "led by",
+      "aliases": ["led by", "headed by", "run by"],
+      "subject_types": ["organization", "account", "opportunity", "unknown"],
+      "object_types": ["person", "role", "unknown"],
+      "cardinality": "one",
+      "description": "An organization or business object is led by a person or role."
+    },
+    {
+      "id": "customer_of",
+      "label": "customer of",
+      "aliases": ["customer of", "client of", "buys from"],
+      "subject_types": ["organization", "account", "unknown"],
+      "object_types": ["organization", "product", "unknown"],
+      "cardinality": "many",
+      "description": "An organization is a customer of another organization or product."
+    },
+    {
+      "id": "supplier_of",
+      "label": "supplier of",
+      "aliases": ["supplier of", "vendor for", "provides to"],
+      "subject_types": ["organization", "account", "unknown"],
+      "object_types": ["organization", "account", "unknown"],
+      "cardinality": "many",
+      "description": "An organization supplies or provides something to another organization."
+    },
+    {
+      "id": "partners_with",
+      "label": "partners with",
+      "aliases": ["partners with", "partnered with", "partner of"],
+      "subject_types": ["organization", "account", "person", "unknown"],
+      "object_types": ["organization", "account", "person", "unknown"],
+      "cardinality": "many",
+      "description": "Two entities have a partnership relationship."
+    },
+    {
+      "id": "competitor_of",
+      "label": "competitor of",
+      "aliases": ["competitor of", "competes with", "rival of"],
+      "subject_types": ["organization", "product", "account", "unknown"],
+      "object_types": ["organization", "product", "account", "unknown"],
+      "cardinality": "many",
+      "description": "An entity competes with another entity."
+    },
+    {
+      "id": "based_in",
+      "label": "based in",
+      "aliases": ["based in", "located in", "headquartered in"],
+      "subject_types": ["organization", "account", "person", "unknown"],
+      "object_types": ["location", "unknown"],
+      "cardinality": "one",
+      "description": "An entity has a primary location."
+    },
+    {
+      "id": "part_of",
+      "label": "part of",
+      "aliases": ["part of", "division of", "subsidiary of"],
+      "subject_types": ["organization", "account", "product", "unknown"],
+      "object_types": ["organization", "account", "unknown"],
+      "cardinality": "one",
+      "description": "An entity belongs to a larger entity."
+    },
+    {
+      "id": "uses",
+      "label": "uses",
+      "aliases": ["uses", "runs on", "standardized on"],
+      "subject_types": ["organization", "account", "person", "unknown"],
+      "object_types": ["product", "organization", "unknown"],
+      "cardinality": "many",
+      "description": "An entity uses a product, platform, vendor, or process."
+    }
+  ]
+}

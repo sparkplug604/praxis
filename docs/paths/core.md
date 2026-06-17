@@ -24,14 +24,17 @@ python3 -m praxis demo core
 4. [Ingestion Pipeline](../modules/core/ingestion-pipeline.md): how sources become captures, chunks, embeddings, and entity-aware evidence.
 5. [Retrieval Pipeline](../modules/core/retrieval-pipeline.md): how search ranks context using vector, keyword, graph, entity, trust, freshness, status, and conflict signals.
 6. [Entity-Aware Evidence](../modules/core/entity-aware-evidence.md): how mentions become evidence annotations such as `ann:...`.
+7. [Relationship Evidence](../modules/core/relationship-evidence.md): how relationship claims become reviewable candidates and accepted graph edges.
 
 ## What Success Looks Like
 
-Core search should return scored results with source context:
+Core search should return explained results with source context:
 
 ```text
-score: 0.82 priority: 0.78 source: cap:...
-why: semantic match, keyword match, active graph node, no open conflicts
+priority_breakdown: trust=0.745; freshness=1.000; status=1.000; conflict_penalty=0.000
+priority_reasons: relevance:...; trust:...; freshness:fresh(...); graph:...; status:...; conflicts:none
+source_id: src:stackoverflow-dev-survey-ai-tooling-mini
+capture_id: cap:src-stackoverflow-dev-survey-ai-tooling-mini:...
 ```
 
 ## Current Boundary

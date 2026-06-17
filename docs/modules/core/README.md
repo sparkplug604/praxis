@@ -12,7 +12,7 @@ The main surfaces are:
 | --- | --- |
 | Ingestion | Source detection, conversion, capture, raw evidence, summaries, metadata, chunking, and embeddings. |
 | Retrieval | Hybrid search across vector hits, keyword hits, SkillGraph hints, optional entity-aware hints, and context-priority scoring. |
-| Evidence | Source IDs, capture IDs, graph links, entity-aware evidence annotations, and explanation output. |
+| Evidence | Source IDs, capture IDs, graph links, entity-aware evidence annotations, relation evidence, and explanation output. |
 | Hygiene | Conflict records, dedupe records, authority anchors, governance checks, rollback, and hash-chain receipts. |
 | Reuse | SkillGraph updates, Markdown reference export, and skill-supporting files. |
 
@@ -57,6 +57,7 @@ Use these pages when you want to understand why Praxis Core behaves differently 
 - [Ingestion Pipeline](ingestion-pipeline.md): how sources become captures, provisional graph changes, chunks, embeddings, and entity-aware evidence.
 - [Retrieval Pipeline](retrieval-pipeline.md): how Core combines vector, keyword, graph, entity, trust, freshness, status, and conflict signals.
 - [Entity-Aware Evidence](entity-aware-evidence.md): how entity mentions become accepted evidence annotations such as `ann:...`.
+- [Relationship Evidence](relationship-evidence.md): how relation claims become reviewable candidates and accepted graph edges.
 - [Maintenance And Hygiene](maintenance-and-hygiene.md): how Core keeps local knowledge inspectable, reversible, and reviewable.
 - [Conflicts And Dedupe](conflicts-and-dedupe.md): how duplicate and contradictory knowledge is surfaced and resolved.
 
@@ -90,6 +91,7 @@ praxis search "what did this source teach us?" --explain
 | `praxis embed` | Embeds pending chunks. |
 | `praxis search` | Runs hybrid semantic, keyword, and graph search. |
 | `praxis graph` | Searches or traverses the SkillGraph. |
+| `praxis relationship-evidence` | Extracts, promotes, reviews, and queries relationship evidence. |
 | `praxis changes` | Lists and inspects graph change sets. |
 | `praxis entities` | Extracts entity mentions, resolves them against SkillGraph aliases, and creates evidence annotations. |
 | `praxis conflicts` | Lists and resolves conflict records. |
@@ -136,6 +138,20 @@ praxis search "Acme renewal risk" --entity-aware --explain
 ```
 
 Entity-aware retrieval keeps raw mentions in the semantic index, resolves them against canonical SkillGraph nodes and aliases, then emits evidence annotations such as `ann:...`. Governance can evaluate those annotations before they are reused as durable knowledge.
+
+## Relationship Evidence
+
+Use Relationship Evidence when you want relationships to become inspectable evidence-backed graph edges instead of staying buried inside text chunks:
+
+```bash
+praxis relationship-evidence extract
+praxis relationship-evidence promote
+praxis relationship-evidence query --subject "Acme" --predicate acquired
+```
+
+Relationship Evidence is narrower than the SkillGraph. It focuses on relationship candidates, evidence annotations, accepted graph edges, and review items for relationship-promotion issues.
+
+See [Relationship Evidence](relationship-evidence.md).
 
 ## Conflict And Dedupe Handling
 

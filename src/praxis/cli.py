@@ -37,6 +37,7 @@ COMMANDS = {
     "entities": ("entities.py", "Extract, resolve, explain, and retrieve entity-aware evidence."),
     "semantic-search": ("semantic_search.py", "Run semantic search only."),
     "graph": ("search_skill_graph.py", "Search or traverse the SkillGraph."),
+    "relationship-evidence": ("relationship_evidence.py", "Extract, review, promote, and query relationship evidence."),
     "library": ("search_praxis_library.py", "Search the relational Praxis library."),
     "eval": ("eval_retrieval.py", "Run lightweight retrieval checks."),
     "check-embeddings": ("check_embedding_setup.py", "Check embedding provider setup."),

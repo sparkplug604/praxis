@@ -1,0 +1,99 @@
+{
+  "access_timezone": "America/Vancouver",
+  "accessed_at_local_date": "2026-06-13",
+  "dataset_name": "Stack Overflow Developer Survey AI Tooling Mini Dataset",
+  "dataset_version": "2026-06-13",
+  "description": "Aggregate excerpt for the Praxis Core demo, generated from official Stack Overflow Developer Survey 2024 and 2025 archive files.",
+  "generated_at_utc": "2026-06-14T06:55:17Z",
+  "generated_files": [
+    {
+      "bytes": 2161,
+      "path": "README.md",
+      "sha256": "a7a0a1e28014cbd5cbeed3f96c05922f11f182adcbb0b1f811a908d7d6565b8f"
+    },
+    {
+      "bytes": 16965,
+      "path": "ai_attitudes_by_year.csv",
+      "sha256": "e270eea571e0725a29af331050457161e0be7097ffd61172ab132f91de75e082"
+    },
+    {
+      "bytes": 5471,
+      "path": "ai_developer_segments.csv",
+      "sha256": "8f0f446ebdeb1db4a8f9321dd7be1c1726266e798e9049f3d6bd55a916f70243"
+    },
+    {
+      "bytes": 13085,
+      "path": "developer_tooling_top_items.csv",
+      "sha256": "fe82c2ad6b87395b5ddc13075510cbe7b97d29f06f1d5f57575c7254f9586d54"
+    },
+    {
+      "bytes": 5542,
+      "path": "shared_schema_fields.csv",
+      "sha256": "8ca8a1c0a4079eeb502fe7e4d999824774fbf47b4f73d27c86c977d302fcdd4b"
+    }
+  ],
+  "license": {
+    "dbcl_10": "https://opendatacommons.org/licenses/dbcl/1-0/",
+    "odbl_10": "https://opendatacommons.org/licenses/odbl/1-0/",
+    "repository_license_section": "https://github.com/StackExchange/Survey#license",
+    "summary": "ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required."
+  },
+  "privacy_note": "Bundled files contain aggregate rows only. Raw respondent-level survey records are not committed.",
+  "raw_sources": [
+    {
+      "archive_url": "https://github.com/StackExchange/Survey/tree/main/packages/archive/2024",
+      "download_url": "https://media.githubusercontent.com/media/StackExchange/Survey/main/packages/archive/2024/schema.csv",
+      "downloaded_bytes": 12503,
+      "downloaded_filename": "2024-schema.csv",
+      "downloaded_sha256": "d9c03fd43949dd9b0fea4847894c4011a6fe3c4390d5d8c48e078a8bfe623833",
+      "kind": "schema",
+      "license": "ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.",
+      "source_year": 2024
+    },
+    {
+      "archive_url": "https://github.com/StackExchange/Survey/tree/main/packages/archive/2024",
+      "download_url": "https://media.githubusercontent.com/media/StackExchange/Survey/main/packages/archive/2024/results.csv",
+      "downloaded_bytes": 159525875,
+      "downloaded_filename": "2024-results.csv",
+      "downloaded_sha256": "7f2c2dbf6989d00b80a7351de4bb3af4b52b21cc52d5c947891bbc4f4e5cbe49",
+      "kind": "results",
+      "license": "ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.",
+      "source_year": 2024
+    },
+    {
+      "archive_url": "https://github.com/StackExchange/Survey/tree/main/packages/archive/2025",
+      "download_url": "https://media.githubusercontent.com/media/StackExchange/Survey/main/packages/archive/2025/schema.csv",
+      "downloaded_bytes": 30403,
+      "downloaded_filename": "2025-schema.csv",
+      "downloaded_sha256": "1d24951e04eab46c6f9fecef6ce8e6b32a0a14a3f0eecdcf62f70833a74b3ff8",
+      "kind": "schema",
+      "license": "ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.",
+      "source_year": 2025
+    },
+    {
+      "archive_url": "https://github.com/StackExchange/Survey/tree/main/packages/archive/2025",
+      "download_url": "https://media.githubusercontent.com/media/StackExchange/Survey/main/packages/archive/2025/results.csv",
+      "downloaded_bytes": 140893245,
+      "downloaded_filename": "2025-results.csv",
+      "downloaded_sha256": "2d1f65308877282edfb4470520eabbc08cb499118432a3dcec6a66c086aa2baa",
+      "kind": "results",
+      "license": "ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.",
+      "source_year": 2025
+    }
+  ],
+  "selected_shared_schema_fields": [
+    "AISelect",
+    "AISent",
+    "AIAcc",
+    "AIComplex",
+    "AIThreat",
+    "AITool",
+    "DevType",
+    "Language",
+    "Database",
+    "Platform",
+    "Webframe"
+  ],
+  "source_homepage": "https://survey.stackoverflow.co/",
+  "source_repository": "https://github.com/StackExchange/Survey"
+}

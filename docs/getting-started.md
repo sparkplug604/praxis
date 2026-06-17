@@ -51,7 +51,7 @@ The demo command is more opinionated than setup. It runs a small happy path and 
 
 | Demo | What It Shows |
 | --- | --- |
-| `praxis demo core` | A local source becoming captured evidence, graph memory, chunks, embeddings, and explained search results. |
+| `praxis demo core` | A bundled Stack Overflow Developer Survey aggregate becoming captured evidence, graph memory, chunks, embeddings, and explained search results. |
 | `praxis demo reach` | Fixture GTM data becoming an evidence card and context pack. |
 | `praxis demo agency` | Two fixture clients running the same GTM workflow with separate evidence and context. |
 
@@ -88,11 +88,13 @@ praxis agency stale-context-report --all
 
 ## What Success Looks Like
 
-Core search should return scored results with source context:
+Core search should return explained results with source context:
 
 ```text
-score: 0.82 priority: 0.78 source: cap:...
-why: semantic match, keyword match, active graph node, no open conflicts
+priority_breakdown: trust=0.745; freshness=1.000; status=1.000; conflict_penalty=0.000
+priority_reasons: relevance:...; trust:...; freshness:fresh(...); graph:...; status:...; conflicts:none
+source_id: src:stackoverflow-dev-survey-ai-tooling-mini
+capture_id: cap:src-stackoverflow-dev-survey-ai-tooling-mini:...
 ```
 
 Reach evidence should return an evidence id:

@@ -116,5 +116,11 @@ praxis = "praxis.cli:main"
 [tool.setuptools]
 package-dir = {"" = "src"}
 
+[tool.setuptools.package-data]
+praxis = [
+  "demo_data/stackoverflow_developer_survey/*",
+  "relationship_evidence/*.json",
+]
+
 [tool.setuptools.packages.find]
 where = ["src"]

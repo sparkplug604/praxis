@@ -160,4 +160,12 @@ That gives an agent something more inspectable than "this chunk was close to the
 
 Entity-aware evidence is additive to chunk retrieval. It does not replace chunks, does not automatically promote every entity candidate, and does not yet expose a public `compare_entities` command.
 
-Relation candidate storage exists as a schema surface, but the default flow currently focuses on mention extraction, resolution, evidence annotations, and entity-aware retrieval.
+Relation hardening now has a separate user-facing command surface:
+
+```bash
+praxis relationship-evidence extract
+praxis relationship-evidence promote
+praxis relationship-evidence query --subject "Acme"
+```
+
+Use [Relationship Evidence](relationship-evidence.md) when you want relationships between entities to become reviewable candidates and accepted graph edges.

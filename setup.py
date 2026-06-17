@@ -14,5 +14,7 @@ setup(
     package_dir={"": "src"},
     packages=find_packages(where="src"),
     python_requires=">=3.9",
+    include_package_data=True,
+    package_data={"praxis": ["demo_data/stackoverflow_developer_survey/*", "relationship_evidence/*.json"]},
     entry_points={"console_scripts": ["praxis=praxis.cli:main"]},
 )

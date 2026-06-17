@@ -1,0 +1,65 @@
+source_year,tooling_dimension,rank,item,respondents_reporting_item,share_of_all_respondents_pct,source_column,source_file,license
+2024,programming language used in past year,1,JavaScript,37492,57.3,LanguageHaveWorkedWith,2024-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2024,programming language used in past year,2,HTML/CSS,31816,48.6,LanguageHaveWorkedWith,2024-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2024,programming language used in past year,3,Python,30719,46.9,LanguageHaveWorkedWith,2024-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2024,programming language used in past year,4,SQL,30682,46.9,LanguageHaveWorkedWith,2024-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2024,programming language used in past year,5,TypeScript,23150,35.4,LanguageHaveWorkedWith,2024-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2024,programming language used in past year,6,Bash/Shell (all shells),20412,31.2,LanguageHaveWorkedWith,2024-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2024,programming language used in past year,7,Java,18239,27.9,LanguageHaveWorkedWith,2024-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2024,programming language used in past year,8,C#,16318,24.9,LanguageHaveWorkedWith,2024-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2024,database used in past year,1,PostgreSQL,25536,39.0,DatabaseHaveWorkedWith,2024-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2024,database used in past year,2,MySQL,21099,32.2,DatabaseHaveWorkedWith,2024-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2024,database used in past year,3,SQLite,17365,26.5,DatabaseHaveWorkedWith,2024-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2024,database used in past year,4,Microsoft SQL Server,13275,20.3,DatabaseHaveWorkedWith,2024-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2024,database used in past year,5,MongoDB,13007,19.9,DatabaseHaveWorkedWith,2024-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2024,database used in past year,6,Redis,10463,16.0,DatabaseHaveWorkedWith,2024-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2024,database used in past year,7,MariaDB,8991,13.7,DatabaseHaveWorkedWith,2024-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2024,database used in past year,8,Elasticsearch,6533,10.0,DatabaseHaveWorkedWith,2024-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2024,platform used in past year,1,Amazon Web Services (AWS),22191,33.9,PlatformHaveWorkedWith,2024-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2024,platform used in past year,2,Microsoft Azure,12850,19.6,PlatformHaveWorkedWith,2024-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2024,platform used in past year,3,Google Cloud,11605,17.7,PlatformHaveWorkedWith,2024-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2024,platform used in past year,4,Cloudflare,6974,10.7,PlatformHaveWorkedWith,2024-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2024,platform used in past year,5,Firebase,6443,9.8,PlatformHaveWorkedWith,2024-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2024,platform used in past year,6,Vercel,5491,8.4,PlatformHaveWorkedWith,2024-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2024,platform used in past year,7,Digital Ocean,5409,8.3,PlatformHaveWorkedWith,2024-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2024,platform used in past year,8,Heroku,3798,5.8,PlatformHaveWorkedWith,2024-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2024,web framework used in past year,1,Node.js,19772,30.2,WebframeHaveWorkedWith,2024-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2024,web framework used in past year,2,React,19167,29.3,WebframeHaveWorkedWith,2024-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2024,web framework used in past year,3,jQuery,10381,15.9,WebframeHaveWorkedWith,2024-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2024,web framework used in past year,4,Next.js,8681,13.3,WebframeHaveWorkedWith,2024-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2024,web framework used in past year,5,Express,8614,13.2,WebframeHaveWorkedWith,2024-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2024,web framework used in past year,6,Angular,8306,12.7,WebframeHaveWorkedWith,2024-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2024,web framework used in past year,7,ASP.NET CORE,8187,12.5,WebframeHaveWorkedWith,2024-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2024,web framework used in past year,8,Vue.js,7483,11.4,WebframeHaveWorkedWith,2024-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2025,programming language used in past year,1,JavaScript,21005,42.7,LanguageHaveWorkedWith,2025-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2025,programming language used in past year,2,HTML/CSS,19698,40.0,LanguageHaveWorkedWith,2025-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2025,programming language used in past year,3,SQL,18633,37.9,LanguageHaveWorkedWith,2025-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2025,programming language used in past year,4,Python,18410,37.4,LanguageHaveWorkedWith,2025-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2025,programming language used in past year,5,Bash/Shell (all shells),15503,31.5,LanguageHaveWorkedWith,2025-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2025,programming language used in past year,6,TypeScript,13859,28.2,LanguageHaveWorkedWith,2025-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2025,programming language used in past year,7,Java,9358,19.0,LanguageHaveWorkedWith,2025-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2025,programming language used in past year,8,C#,8852,18.0,LanguageHaveWorkedWith,2025-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2025,database used in past year,1,PostgreSQL,14529,29.5,DatabaseHaveWorkedWith,2025-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2025,database used in past year,2,MySQL,10581,21.5,DatabaseHaveWorkedWith,2025-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2025,database used in past year,3,SQLite,9798,19.9,DatabaseHaveWorkedWith,2025-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2025,database used in past year,4,Microsoft SQL Server,7871,16.0,DatabaseHaveWorkedWith,2025-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2025,database used in past year,5,Redis,7316,14.9,DatabaseHaveWorkedWith,2025-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2025,database used in past year,6,MongoDB,6267,12.7,DatabaseHaveWorkedWith,2025-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2025,database used in past year,7,MariaDB,5862,11.9,DatabaseHaveWorkedWith,2025-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2025,database used in past year,8,Elasticsearch,4347,8.8,DatabaseHaveWorkedWith,2025-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2025,platform used in past year,1,Docker,17414,35.4,PlatformHaveWorkedWith,2025-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2025,platform used in past year,2,npm,13906,28.3,PlatformHaveWorkedWith,2025-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2025,platform used in past year,3,Amazon Web Services (AWS),10618,21.6,PlatformHaveWorkedWith,2025-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2025,platform used in past year,4,Pip,10025,20.4,PlatformHaveWorkedWith,2025-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2025,platform used in past year,5,Kubernetes,6993,14.2,PlatformHaveWorkedWith,2025-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2025,platform used in past year,6,Microsoft Azure,6447,13.1,PlatformHaveWorkedWith,2025-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2025,platform used in past year,7,Homebrew,6291,12.8,PlatformHaveWorkedWith,2025-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2025,platform used in past year,8,Vite,6215,12.6,PlatformHaveWorkedWith,2025-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2025,web framework used in past year,1,Node.js,11544,23.5,WebframeHaveWorkedWith,2025-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2025,web framework used in past year,2,React,10596,21.5,WebframeHaveWorkedWith,2025-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2025,web framework used in past year,3,jQuery,5541,11.3,WebframeHaveWorkedWith,2025-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2025,web framework used in past year,4,Next.js,4933,10.0,WebframeHaveWorkedWith,2025-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2025,web framework used in past year,5,Express,4710,9.6,WebframeHaveWorkedWith,2025-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2025,web framework used in past year,6,ASP.NET Core,4664,9.5,WebframeHaveWorkedWith,2025-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2025,web framework used in past year,7,Angular,4319,8.8,WebframeHaveWorkedWith,2025-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
+2025,web framework used in past year,8,Vue.js,4162,8.5,WebframeHaveWorkedWith,2025-results.csv,ODbL 1.0 for the survey database; DbCL 1.0 for database contents; Stack Overflow attribution required.
