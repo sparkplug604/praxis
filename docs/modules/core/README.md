@@ -48,6 +48,8 @@ Core does not treat captured text as automatically true. It stores the evidence,
 
 Intake runs before capture. It detects file type, chooses a converter, preserves converter metadata, and records parse-quality warnings. It can also create source-linked media evidence from transcripts, keyframes, OCR, speaker turns, and visual embeddings when optional local adapters are installed. See [Praxis Intake](intake.md).
 
+Working with web specifications? Core keeps labels like `Length (m)` beside their values in supported HTML tables. [Preview the extracted rows or refresh an older capture](intake.md#checking-html-tables).
+
 ## Core Deep Dives
 
 Use these pages when you want to understand why Praxis Core behaves differently from a typical RAG stack:

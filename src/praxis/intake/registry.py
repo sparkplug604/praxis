@@ -91,7 +91,7 @@ def build_result(
         source_ref=source_ref,
         media_type=media_type,
         converter_name=converter_name,
-        converter_version=CONVERTER_VERSION,
+        converter_version="2" if converter_name == "html" else CONVERTER_VERSION,
         content_hash=sha256_text(text),
         artifact_hash=sha256_bytes(body),
         artifact_bytes=body,

@@ -25,7 +25,7 @@ source
 | Source Type | Current Behavior |
 | --- | --- |
 | Text / Markdown | Extracts the document as searchable text. |
-| HTML / web pages | Extracts visible text and removes script/style noise. |
+| HTML / web pages | Keeps labels and units next to values in simple specification tables and two-cell infobox rows. Nested tables and unsupported layouts remain searchable as text, with a warning. |
 | PDF | Uses optional `pypdf` and preserves page units when available. |
 | CSV | Preserves table and row units with structured row data. |
 | JSON / JSONL | Preserves structured records and readable JSON text. |
@@ -33,6 +33,22 @@ source
 | Images | Uses OCR sidecars when present, or optional Pillow + pytesseract OCR when installed. |
 | Audio / video | Uses transcript sidecars when present, optional faster-whisper speech-to-text when installed, selected video keyframes when requested, or low-confidence media metadata when no transcript is available. |
 | Directories | Captures supported documentation files and records skipped files as warnings. |
+
+## Checking HTML tables
+
+To preview how Praxis reads a local HTML file without adding it to your index:
+
+```bash
+praxis intake convert ./specs.html --json --include-units
+```
+
+For a table captioned "Fleet" with columns "Model" and "Length (m)", look for
+a `table_row` with text such as `Fleet; Model: Target-017; Length (m): 19.43`.
+The unit's location identifies its source, table, and row. If the layout is
+ambiguous, check the warnings and the original table before relying on a value.
+
+To update an older flattened HTML capture, capture the original HTML again, then
+chunk and embed the new capture. Re-embedding the old text cannot restore lost headers.
 
 ## Commands
 
