@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+HTML capture now keeps labels and units with values in simple tables and infoboxes.
+Unsupported layouts remain searchable as text and produce a warning. Existing captures
+are unchanged; see [Checking HTML tables](docs/modules/core/intake.md#checking-html-tables)
+to preview a source or refresh an older capture.
+
 ## 0.1.0 - 2026-05-15
 
 Initial public release.
