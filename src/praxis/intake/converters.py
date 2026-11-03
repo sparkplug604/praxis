@@ -59,8 +59,9 @@ class _HTMLTextExtractor(html.parser.HTMLParser):
         if not self._skip:
             self.parts.append(data)
 
-    def text(self) -> str:
-        raw = " ".join(self.parts)
+    @staticmethod
+    def text(parts: list[str]) -> str:
+        raw = " ".join(parts)
         raw = re.sub(r"[ \t\r\f\v]+", " ", raw)
         raw = re.sub(r"\n\s+", "\n", raw)
         raw = re.sub(r"\n{3,}", "\n\n", raw)
@@ -68,14 +69,150 @@ class _HTMLTextExtractor(html.parser.HTMLParser):
 
 
 def html_to_text(raw: str) -> str:
-    parser = _HTMLTextExtractor()
+    parser = _TableExtractor()
     parser.feed(raw)
-    return parser.text()
+    parser.close()
+    return "\n\n".join(unit.text for unit in parser.units(""))
 
 
 def convert_html(source_ref: str, body: bytes, metadata: dict[str, Any]) -> tuple[list[ExtractedUnit], dict[str, Any], list[str]]:
-    text = html_to_text(decode_text(body))
-    return [make_unit(source_ref, "html_document", text, location={"source": source_ref})], metadata, []
+    parser = _TableExtractor()
+    parser.feed(decode_text(body))
+    parser.close()
+    return parser.units(source_ref), metadata, parser.warnings
+
+
+class _TableExtractor(_HTMLTextExtractor):
+    """Replace unambiguous rows in place; retain legacy text for other layouts."""
+
+    def __init__(self):
+        super().__init__()
+        self.depth = self.table_no = 0
+        self.heading = ""
+        self.heading_start = None
+        self.replacements = []
+        self.warnings = []
+
+    def handle_starttag(self, tag, attrs):
+        super().handle_starttag(tag, attrs)
+        if self._skip:
+            return
+        if tag == "table":
+            self.depth += 1
+            if self.depth == 1:
+                self.table_no += 1
+                self.pending = []
+                self.invalid = False
+                self.columns = []
+                self.group = ""
+                self.caption = ""
+                self.caption_start = None
+                self.row_start = self.cell = None
+                self.row_no = 0
+            else:
+                self.invalid = True
+        if not self.depth and tag in {"h1", "h2", "h3", "h4"}:
+            self.heading_start = len(self.parts)
+        if self.depth != 1 or self.invalid:
+            return
+        if tag == "caption":
+            self.caption_start = len(self.parts)
+        elif tag == "tr":
+            self.invalid = self.row_start is not None
+            self.row_start = len(self.parts)
+            self.row_no += 1
+            self.cells = []
+        elif tag in {"td", "th"}:
+            attrs = dict(attrs)
+            self.invalid = (self.row_start is None or self.cell is not None
+                            or attrs.get("rowspan", "1") != "1" or "headers" in attrs)
+            self.cell = (tag, attrs.get("colspan", "1"), len(self.parts))
+
+    def handle_endtag(self, tag):
+        if not self._skip:
+            if self.depth == 1 and not self.invalid:
+                if tag in {"td", "th"}:
+                    if not self.cell or self.cell[0] != tag:
+                        self.invalid = True
+                    else:
+                        kind, span, start = self.cell
+                        value = " ".join("".join(self.parts[start:]).split())
+                        self.cells.append((kind, span, value))
+                        self.cell = None
+                elif tag == "tr":
+                    self.finish_row()
+                elif tag == "caption" and self.caption_start is not None:
+                    self.caption = " ".join("".join(self.parts[self.caption_start:]).split())
+                    self.caption_start = None
+            if tag == "table" and self.depth:
+                self.depth -= 1
+                if not self.depth:
+                    if self.invalid or self.row_start is not None or not self.pending:
+                        self.warnings.append(f"html_table_{self.table_no}: preserved as unstructured text")
+                    else:
+                        self.replacements.extend(self.pending)
+            elif not self.depth and tag in {"h1", "h2", "h3", "h4"} and self.heading_start is not None:
+                self.heading = " ".join("".join(self.parts[self.heading_start:]).split())
+                self.heading_start = None
+        super().handle_endtag(tag)
+
+    def finish_row(self):
+        start, self.row_start = self.row_start, None
+        if start is None or self.cell is not None or not self.cells:
+            self.invalid = True
+            return
+        kinds, spans, values = zip(*self.cells)
+        if len(values) == 1 and kinds == ("th",):
+            self.group, self.columns = values[0], []
+            if self.row_no == 1 and not self.caption:
+                self.caption = self.group
+            return
+        if len(values) == 1 and not self.columns and kinds == ("td",):
+            # A full-width illustration/description has no label/value binding.
+            return
+        if any(s != "1" for s in spans):
+            self.invalid = True
+            return
+        if all(k == "th" for k in kinds):
+            # Do not silently discard a level of multi-tier column headings.
+            if self.columns or not all(values) or len(set(values)) != len(values):
+                self.invalid = True
+            self.columns = values
+            return
+        if self.columns and len(self.columns) == len(values):
+            pairs = list(zip(self.columns, values))
+        elif not self.columns and kinds == ("th", "td") and values[0]:
+            pairs = [(values[0], values[1])]
+        else:
+            self.invalid = True
+            return
+        context = list(dict.fromkeys(s for s in (self.heading, self.caption, self.group) if s))
+        if sum(map(len, context)) + sum(len(k) for k, _ in pairs) > 1024:
+            self.invalid = True
+            return
+        text = "; ".join(context + [f"{k}: {v}" for k, v in pairs])
+        self.pending.append((start, len(self.parts), self.table_no, self.row_no, text, pairs))
+
+    def units(self, source):
+        result = []
+
+        def prose(parts):
+            text = self.text(parts)
+            if text:
+                result.append(make_unit(source, "html_document", text, index=len(result) + 1,
+                                        location={"source": source}))
+
+        cursor = 0
+        for start, end, table, row, text, pairs in self.replacements:
+            prose(self.parts[cursor:start])
+            result.append(make_unit(source, "table_row", text, index=len(result),
+                                    location={"source": source, "table": table, "row": row},
+                                    structured_data={"fields": dict(pairs)}))
+            cursor = end
+        prose(self.parts[cursor:])
+        if self.depth:
+            self.warnings.append("unclosed_html_table: preserved as unstructured text")
+        return result
 
 
 def convert_pdf(source_ref: str, body: bytes, metadata: dict[str, Any]) -> tuple[list[ExtractedUnit], dict[str, Any], list[str]]:
